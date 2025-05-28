@@ -156,9 +156,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize modeler if not already done
         if (!bpmnModeler) {
             try {
+                // Use the full modeler with editing capabilities
                 bpmnModeler = new window.BpmnJS({
-                    container: diagramContainer
+                    container: diagramContainer,
+                    keyboard: {
+                        bindTo: window
+                    }
                 });
+
+                // Store globally for debugging
+                window.bpmnModeler = bpmnModeler;
             } catch (err) {
                 console.error('Error initializing BPMN modeler:', err);
                 return;
