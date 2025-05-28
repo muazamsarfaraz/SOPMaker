@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounts System SOP - Payment Processing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@17.0.2/dist/assets/bpmn-js.css">
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@17.0.2/dist/assets/diagram-js.css">
+    <script src="https://unpkg.com/bpmn-js@17.0.2/dist/bpmn-modeler.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2c3e50', secondary: '#3498db', accent: '#e74c3c',
+                        light: '#ecf0f1', dark: '#34495e', success: '#2ecc71', warning: '#f39c12',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <div class="container mx-auto p-4 md:p-6 lg:p-8 max-w-7xl">
+        <header class="bg-primary text-white p-6 rounded-lg shadow-lg mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold">Standard Operating Procedure (SOP)</h1>
+            <div class="text-lg text-slate-300 mt-2">Accounts System - Payment Processing</div>
+        </header>
+
+        <section class="mb-8 p-6 bg-white rounded-lg shadow-md">
+            <div class="flex justify-between items-center border-b-2 border-secondary pb-3 mb-4">
+                <h2 class="text-2xl font-semibold text-primary">Process Overview</h2>
+                <div class="flex space-x-2">
+                    <button type="button" id="editDiagramBtn" class="edit-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        Edit Diagram
+                    </button>
+                    <button type="button" id="downloadXmlBtn" class="file-button download-button">Download XML</button>
+                    <label for="uploadXmlInput" class="file-button upload-label">Upload XML</label>
+                    <input type="file" id="uploadXmlInput" accept=".bpmn, .xml" class="hidden">
+                </div>
+            </div>
+            <div id="uploadStatus" class="text-sm text-slate-600"></div>
+            <div id="diagram" class="diagram-container border border-slate-300 bg-slate-50">
+                <div class="loading-message flex items-center justify-center h-full text-slate-500">Loading Diagram...</div>
+                <!-- Custom error messages will be appended here if needed -->
+            </div>
+            <!-- BPMN Editing Controls (hidden by default) -->
+            <div id="diagramEditControls" class="diagram-edit-controls hidden mt-4 p-4 bg-slate-50 border border-slate-200 rounded-md">
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-slate-600">
+                        <span class="font-medium">Editing Mode:</span> Click and drag to modify the diagram. Use the palette on the left to add new elements.
+                    </div>
+                    <div class="flex space-x-2">
+                        <button type="button" id="cancelDiagramEdit" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-sm">Cancel</button>
+                        <button type="button" id="saveDiagramEdit" class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-8 p-6 bg-white rounded-lg shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold text-primary border-b-2 border-secondary pb-3">Description</h2>
+                <button type="button" id="editDescriptionBtn" class="edit-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Edit
+                </button>
+            </div>
+            <div id="descriptionContainer" class="bg-light p-5 rounded-md text-slate-700 space-y-4">
+                <p class="text-slate-500">Loading description...</p>
+            </div>
+            <div id="descriptionEditor" class="description-editor hidden">
+                <textarea id="descriptionTextarea" class="w-full h-40 p-3 border border-slate-300 rounded-md focus:ring-secondary focus:border-secondary resize-vertical"></textarea>
+                <div class="flex justify-end space-x-2 mt-2">
+                    <button type="button" id="cancelDescriptionEdit" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-sm">Cancel</button>
+                    <button type="button" id="saveDescriptionEdit" class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm">Save</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-8 p-6 bg-white rounded-lg shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold text-primary border-b-2 border-secondary pb-3">Procedure Steps</h2>
+                <button type="button" id="editStepsBtn" class="edit-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Edit
+                </button>
+            </div>
+            <div id="procedureStepsContainer" class="steps-container">
+                <p class="text-slate-500">Loading procedure steps...</p>
+            </div>
+            <div id="stepsEditor" class="steps-editor hidden">
+                <textarea id="stepsTextarea" class="w-full h-60 p-3 border border-slate-300 rounded-md focus:ring-secondary focus:border-secondary resize-vertical" placeholder="Enter procedure steps in markdown format..."></textarea>
+                <div class="flex justify-end space-x-2 mt-2">
+                    <button type="button" id="cancelStepsEdit" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-sm">Cancel</button>
+                    <button type="button" id="saveStepsEdit" class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm">Save</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-8 p-6 bg-white rounded-lg shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold text-primary border-b-2 border-secondary pb-3">Risks and Mitigation Strategies</h2>
+                <button type="button" id="editRisksBtn" class="edit-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Edit
+                </button>
+            </div>
+            <div id="risksContainer" class="risks-container">
+                <p class="text-slate-500">Loading risk assessment...</p>
+            </div>
+            <div id="risksEditor" class="risks-editor hidden">
+                <textarea id="risksTextarea" class="w-full h-60 p-3 border border-slate-300 rounded-md focus:ring-secondary focus:border-secondary resize-vertical" placeholder="Enter risks and mitigation strategies..."></textarea>
+                <div class="flex justify-end space-x-2 mt-2">
+                    <button type="button" id="cancelRisksEdit" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-sm">Cancel</button>
+                    <button type="button" id="saveRisksEdit" class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm">Save</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-8 p-6 bg-white rounded-lg shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold text-primary border-b-2 border-secondary pb-3">Control Measures and KPIs</h2>
+                <button type="button" id="editControlsBtn" class="edit-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Edit
+                </button>
+            </div>
+            <div id="controlsContainer" class="controls-container">
+                <p class="text-slate-500">Loading control measures...</p>
+            </div>
+            <div id="controlsEditor" class="controls-editor hidden">
+                <textarea id="controlsTextarea" class="w-full h-60 p-3 border border-slate-300 rounded-md focus:ring-secondary focus:border-secondary resize-vertical" placeholder="Enter control measures and KPIs..."></textarea>
+                <div class="flex justify-end space-x-2 mt-2">
+                    <button type="button" id="cancelControlsEdit" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-sm">Cancel</button>
+                    <button type="button" id="saveControlsEdit" class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm">Save</button>
+                </div>
+            </div>
+        </section>
+
+        <footer class="mt-8 p-6 bg-dark text-white rounded-lg shadow-lg">
+            <div class="document-controls grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm mb-4">
+                <div><span class="font-semibold text-slate-300">Document ID:</span> <span class="text-slate-100">AP-SOP-2025-042</span></div>
+                <div><span class="font-semibold text-slate-300">Version:</span> <span class="text-slate-100">2.3</span></div>
+                <div><span class="font-semibold text-slate-300">Effective Date:</span> <span class="text-slate-100">May 15, 2025</span></div>
+                <div><span class="font-semibold text-slate-300">Review Date:</span> <span class="text-slate-100">May 15, 2026</span></div>
+                <div><span class="font-semibold text-slate-300">Approved By:</span> <span class="text-slate-100">J. Thompson, CFO</span></div>
+                <div><span class="font-semibold text-slate-300">Department:</span> <span class="text-slate-100">Finance & Accounting</span></div>
+            </div>
+            <div class="text-xs text-slate-400 space-y-2">
+                <p>This document is confidential and proprietary. Unauthorized distribution is prohibited.</p>
+                <p>All users must follow this procedure for all vendor and contractor payments.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Hidden input for loading SOP from folder -->
+    <input type="file" id="loadSopFolderInput" webkitdirectory directory style="display: none;" />
+
+    <!-- Menu FAB Container -->
+    <div class="fab-container fixed bottom-8 right-8 flex flex-col items-center">
+        <!-- Sub-action buttons (hidden by default) -->
+        <button id="loadSopFolderFabBtn" title="Load SOP from Folder" class="fab-action-button mb-2 w-12 h-12 bg-teal-500 hover:bg-teal-600 text-white p-3 rounded-full shadow-lg focus:outline-none transition-all duration-200 ease-out opacity-0 transform scale-90 translate-y-2 hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mx-auto" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
+            </svg>
+        </button>
+        <button id="printSopFabBtn" title="Print SOP" class="fab-action-button mb-2 w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg focus:outline-none transition-all duration-200 ease-out opacity-0 transform scale-90 translate-y-2 hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mx-auto" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a8.25 8.25 0 0 1 8.25-8.25H12M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096A8.25 8.25 0 0 0 12 21.75H6.75m0-8.886c.24-.03.48-.062.72-.096m-.72.096L3.75 12l2.25-2.724M12 12c0 .884.114 1.733.317 2.551m-6.718-2.724A8.25 8.25 0 0 1 12 2.25c1.713 0 3.32.52 4.683 1.404m4.231 2.476V12A8.25 8.25 0 0 0 12 3.75M12 12c0-.884-.114-1.733-.317-2.551m6.718 2.724A8.25 8.25 0 0 0 12 21.75c-1.713 0-3.32-.52-4.683-1.404m4.231-2.476V12a8.25 8.25 0 0 1-12 0v2.276" />
+            </svg>
+        </button>
+        <button id="saveSopZipFabBtn" title="Save SOP (Download as ZIP)" class="fab-action-button mb-2 w-12 h-12 bg-green-500 hover:bg-green-600 text-white p-3 rounded-full shadow-lg focus:outline-none transition-all duration-200 ease-out opacity-0 transform scale-90 translate-y-2 hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mx-auto" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+        </button>
+        <button id="generateSopFabBtn" title="Generate New SOP" class="fab-action-button mb-2 w-12 h-12 bg-purple-500 hover:bg-purple-600 text-white p-3 rounded-full shadow-lg focus:outline-none transition-all duration-200 ease-out opacity-0 transform scale-90 translate-y-2 hidden">
+             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mx-auto" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.624L16.5 21.75l-.398-1.126a3.375 3.375 0 00-2.455-2.456L12.75 18l1.126-.398a3.375 3.375 0 002.455-2.456L16.5 14.25l.398 1.126a3.375 3.375 0 002.456 2.456L20.25 18l-1.126.398a3.375 3.375 0 00-2.456 2.456z" />
+            </svg>
+        </button>
+
+        <!-- Main FAB toggle button -->
+        <button id="mainFabToggleBtn" title="Actions" class="w-16 h-16 bg-accent hover:bg-red-700 text-white p-4 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition-all duration-200 ease-in-out">
+            <svg id="mainFabIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 transition-transform duration-200 ease-in-out" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /> <!-- Plus Icon -->
+            </svg>
+        </button>
+    </div>
+
+    <!-- Modal for SOP Generation Input -->
+    <div id="sopGeneratorModal" class="modal hidden fixed inset-0 bg-slate-900 bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div class="modal-content bg-white p-6 md:p-8 rounded-lg shadow-2xl w-full max-w-lg transform transition-all duration-300 ease-out scale-95 opacity-0">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-semibold text-primary">Generate New SOP</h3>
+                <button id="closeSopGeneratorModalBtn" class="text-slate-500 hover:text-accent text-2xl">&times;</button>
+            </div>
+            <div>
+                <label for="sopDescriptionInput" class="block text-sm font-medium text-slate-700 mb-1">Describe the SOP you want to create:</label>
+                <textarea id="sopDescriptionInput" rows="6" class="w-full p-3 border border-slate-300 rounded-md focus:ring-secondary focus:border-secondary" placeholder="e.g., 'A procedure for onboarding new remote employees, including IT setup, HR documentation, and first-week tasks.'"></textarea>
+                <button id="loadInitialDescriptionBtn" class="mt-2 text-sm text-secondary hover:text-blue-700 underline focus:outline-none">Load initial SOP description as a starting point</button>
+                <div class="flex items-center mt-2">
+                    <div id="sopGeneratorStatus" class="text-sm text-slate-600 min-h-[1.25rem]"></div>
+                    <span id="sopGeneratorSpinner" class="spinner hidden ml-2"></span>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="cancelSopGenerationBtn" class="file-button bg-slate-200 hover:bg-slate-300 text-slate-700">Cancel</button>
+                <button id="generateSopBtn" class="file-button bg-secondary hover:bg-blue-700 text-white">
+                    Generate SOP
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Content of this script block is now in script.js
+    </script>
+    <script src="script.js" defer></script>
+</body>
+</html>

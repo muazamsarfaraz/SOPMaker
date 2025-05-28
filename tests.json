@@ -1,0 +1,129 @@
+{
+  "testSuiteName": "SOP Maker Application Tests",
+  "testCases": [
+    {
+      "id": "TC001",
+      "description": "Initial Page Load and Default Content Verification",
+      "steps": [
+        "Navigate to the application URL (e.g., http://localhost:3001/index.html).",
+        "Verify page title is 'Accounts System SOP - Payment Processing - SOP'.",
+        "Verify the BPMN diagram section status eventually shows 'Diagram loaded successfully.'.",
+        "Verify the description container loads content (e.g., contains a <pre> tag with text).",
+        "Verify the procedure steps container loads content (e.g., contains a <ul class='step-tree'>).",
+        "Verify the footer displays the default document ID 'AP-SOP-2025-042'."
+      ],
+      "expectedResult": "Page loads with all default SOP content correctly displayed and initial data populated in the currentSopData state."
+    },
+    {
+      "id": "TC002",
+      "description": "FAB Menu Interaction",
+      "steps": [
+        "Click the main FAB toggle button (#mainFabToggleBtn).",
+        "Verify sub-action buttons (e.g., #generateSopFabBtn, #saveSopZipFabBtn, #loadSopFolderFabBtn, #printSopFabBtn) become visible and are not 'hidden'.",
+        "Verify the main FAB icon (#mainFabIcon) changes to an 'X' shape.",
+        "Click the main FAB toggle button again.",
+        "Verify sub-action buttons become hidden.",
+        "Verify the main FAB icon changes back to a 'plus' shape."
+      ],
+      "expectedResult": "FAB menu opens and closes correctly, toggling sub-button visibility and main icon state."
+    },
+    {
+      "id": "TC003",
+      "description": "SOP Generation Modal - Open, Load Initial Description, Close",
+      "steps": [
+        "Open the FAB menu and click the 'Generate New SOP' button (#generateSopFabBtn).",
+        "Verify the SOP Generation Modal (#sopGeneratorModal) becomes visible.",
+        "Click the 'Load initial SOP description as a starting point' button (#loadInitialDescriptionBtn).",
+        "Verify the textarea (#sopDescriptionInput) is populated with the default description text.",
+        "Click the 'Cancel' button (#cancelSopGenerationBtn) in the modal.",
+        "Verify the SOP Generation Modal is hidden."
+      ],
+      "expectedResult": "SOP Generation modal opens, can load initial description, and closes correctly."
+    },
+    {
+      "id": "TC004",
+      "description": "Simulated SOP Generation and Page Update",
+      "steps": [
+        "Open the SOP Generation Modal.",
+        "Enter a test description (e.g., 'SOP for emergency server reboot') into #sopDescriptionInput.",
+        "Click the 'Generate SOP' button (#generateSopBtn).",
+        "Observe status updates and spinner in the modal.",
+        "Verify the modal closes after simulated generation.",
+        "Verify the main page title and header update based on the input (e.g., contains 'SOP for emergency server reboot').",
+        "Verify the BPMN diagram updates (check for a task name like 'Analyze: SOP for emergency server...').",
+        "Verify the description section updates with generated content.",
+        "Verify the procedure steps section updates with generated steps.",
+        "Verify the footer information updates (e.g., Document ID starts with 'AI-GEN-')."
+      ],
+      "expectedResult": "Page content dynamically updates to reflect the (simulated) generated SOP based on user input."
+    },
+    {
+      "id": "TC005",
+      "description": "Save SOP as ZIP",
+      "preconditions": "An SOP (either default or generated) is currently displayed.",
+      "steps": [
+        "Open the FAB menu.",
+        "Click the 'Save SOP (as ZIP)' button (#saveSopZipFabBtn).",
+        "Observe the browser initiates a download of a ZIP file.",
+        "Verify the suggested ZIP filename is derived from the current SOP title (e.g., 'SOP_for_emergency_server_reboot.zip').",
+        "(Manual Step) Extract the downloaded ZIP file.",
+        "(Manual Step) Verify the extracted folder is named after the SOP title.",
+        "(Manual Step) Verify the folder contains 'diagram.bpmn', 'description.md', 'procedure_steps.md', and 'metadata.json'.",
+        "(Manual Step) Verify the content of 'metadata.json' includes the correct title, subtitle, and footer data.",
+        "(Manual Step) Verify the content of the .bpmn and .md files matches the SOP that was displayed."
+      ],
+      "expectedResult": "A ZIP file containing the current SOP's structured content (BPMN, description, steps, metadata) is successfully downloaded."
+    },
+    {
+      "id": "TC006",
+      "description": "Load SOP from Folder - Valid Folder",
+      "preconditions": "User has a folder on their system that was created by extracting a previously saved SOP ZIP (containing diagram.bpmn, description.md, procedure_steps.md, metadata.json).",
+      "steps": [
+        "Open the FAB menu.",
+        "Click the 'Load SOP from Folder' button (#loadSopFolderFabBtn) - this will trigger the hidden input #loadSopFolderInput.",
+        "(Manual Step) When the browser's folder selection dialog appears, select the prepared valid SOP folder.",
+        "Observe the page content (title, subtitle, BPMN diagram, description, steps, footer) updates to reflect the content from the selected folder.",
+        "Verify status message in #uploadStatus indicates successful loading."
+      ],
+      "expectedResult": "The application successfully loads and displays the SOP content from the selected folder."
+    },
+    {
+      "id": "TC007",
+      "description": "Load SOP from Folder - Invalid Folder (Missing Files)",
+      "preconditions": "User has a folder that is missing one or more required files (e.g., no 'metadata.json').",
+      "steps": [
+        "Open the FAB menu.",
+        "Click the 'Load SOP from Folder' button (#loadSopFolderFabBtn).",
+        "(Manual Step) Select the invalid SOP folder.",
+        "Observe an error message is displayed in #uploadStatus or as an alert, indicating missing files.",
+        "Verify the page content does not change from its previous state."
+      ],
+      "expectedResult": "The application handles the invalid folder gracefully, shows an error, and does not alter the current SOP view."
+    },
+    {
+      "id": "TC008",
+      "description": "Print SOP Functionality",
+      "steps": [
+        "Open the FAB menu.",
+        "Click the 'Print SOP' button (#printSopFabBtn).",
+        "(Manual Step) Observe the browser's print dialog appears.",
+        "(Manual Step) Check the print preview for appropriate A4 formatting (hidden UI elements, layout adjustments as per @media print styles)."
+      ],
+      "expectedResult": "Print dialog is invoked, and print preview reflects print-specific CSS."
+    },
+    {
+      "id": "TC009",
+      "description": "BPMN Diagram Section - Upload and Download XML",
+      "steps": [
+        "Click the 'Download XML' button in the 'Process Overview' section.",
+        "Verify a .bpmn file is downloaded, named based on the current SOP title.",
+        "(Manual Step) Prepare a valid sample BPMN XML file on your system.",
+        "Click the 'Upload XML' label in the 'Process Overview' section.",
+        "(Manual Step) Select the prepared BPMN file using the native file dialog.",
+        "Verify the diagram viewer updates to show the content of the uploaded BPMN file.",
+        "Verify #uploadStatus message indicates successful loading of the uploaded diagram."
+      ],
+      "expectedResult": "User can download the current diagram and upload a new BPMN diagram via the controls in the Process Overview section."
+    }
+  ]
+} 

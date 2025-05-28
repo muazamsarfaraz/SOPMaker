@@ -1,0 +1,3 @@
+This Standard Operating Procedure (SOP) outlines the systematic approach for processing payments within the accounts system. The procedure ensures that all payments are properly authorized, validated against completed work, and accurately recorded in compliance with financial controls. This process applies to all outgoing payments to vendors, contractors, and service providers.
+
+The procedure starts with accessing customer records, proceeds through work completion verification, requires appropriate authorization sign-off, and concludes with payment issuance and documentation. Each step has designated responsibilities and verification points to maintain financial integrity and accuracy throughout the payment process. 

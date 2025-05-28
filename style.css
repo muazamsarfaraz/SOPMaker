@@ -1,0 +1,338 @@
+body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.diagram-container {
+    height: 750px; /* Increased height to accommodate better spacing */
+    min-height: 500px;
+    max-height: 900px;
+    width: 100%;
+    border-radius: 0.5rem;
+    overflow: auto;
+    position: relative;
+}
+.step-tree { list-style: none; padding-left: 0; }
+.step-tree > li { padding-left: 1.5rem; margin-bottom: 1rem; border-left-width: 3px; border-color: #3b82f6; position: relative; }
+.step-tree > li::before { content: ''; width: 1rem; height: 1rem; background-color: #3b82f6; border-radius: 9999px; position: absolute; left: -0.5625rem; top: 0.3125rem; }
+.step-tree ul { list-style: none; padding-left: 1.25rem; margin-top: 0.5rem; }
+.step-tree ul li { margin-bottom: 0.5rem; position: relative; }
+.step-tree ul li::before { content: '•'; color: #3b82f6; font-weight: bold; position: absolute; left: -1rem; }
+
+.bjs-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+.bjs-powered-by {
+    display: none !important;
+}
+
+/* BPMN Editing Styles */
+.diagram-edit-controls {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.diagram-edit-controls.hidden {
+    display: none;
+}
+
+/* BPMN Modeler Palette Styles */
+.djs-palette {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.djs-palette .entry {
+    border-radius: 0.25rem;
+    margin: 2px;
+}
+
+.djs-palette .entry:hover {
+    background-color: #f1f5f9;
+}
+
+.djs-palette .entry.highlighted {
+    background-color: #3b82f6;
+    color: white;
+}
+
+/* BPMN Context Pad Styles */
+.djs-context-pad {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.djs-context-pad .entry {
+    border-radius: 0.25rem;
+    margin: 1px;
+}
+
+.djs-context-pad .entry:hover {
+    background-color: #f1f5f9;
+}
+
+/* BPMN Properties Panel (if used) */
+.bio-properties-panel {
+    background: white;
+    border-left: 1px solid #e2e8f0;
+}
+
+/* Edit mode indicator */
+.edit-mode-active .diagram-container {
+    border: 2px solid #3b82f6;
+    border-radius: 0.5rem;
+}
+
+/* Transition effects for mode switching */
+.diagram-container {
+    transition: border-color 0.3s ease;
+}
+/* Styling for the new buttons */
+.file-button {
+    padding: 0.5rem 1rem;
+    margin: 0.5rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.download-button {
+    background-color: #3498db; /* secondary color */
+    color: white;
+}
+.download-button:hover {
+    background-color: #2980b9;
+}
+.upload-label {
+    background-color: #2ecc71; /* success color */
+    color: white;
+}
+.upload-label:hover {
+    background-color: #27ae60;
+}
+#uploadStatus {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+}
+/* Custom error message styling */
+.custom-diagram-error {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+    z-index: 10; /* Ensure it's above the diagram canvas if canvas is not hidden */
+}
+
+/* FAB and Modal Styles */
+.fab {
+    /* Tailwind classes handle most of this, but ensure z-index if needed */
+    z-index: 40; /* Below modal, above other content */
+}
+
+.modal {
+    /* Tailwind classes handle most of this, but ensure z-index */
+    z-index: 50; /* Highest z-index */
+}
+
+/* Modal entrance/exit animation - using Tailwind classes for simplicity now */
+.modal.hidden .modal-content {
+    transform: scale(0.95);
+    opacity: 0;
+}
+.modal:not(.hidden) .modal-content {
+    transform: scale(1);
+    opacity: 1;
+}
+
+#sopGeneratorStatus {
+    min-height: 1.25rem; /* 20px - to prevent layout shift when text appears */
+}
+
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 3px solid rgba(44, 62, 80, 0.2); /* primary color, slightly transparent */
+    border-radius: 50%;
+    border-top-color: #2c3e50; /* primary color */
+    animation: spin 0.8s ease-in-out infinite;
+    -webkit-animation: spin 0.8s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+@-webkit-keyframes spin {
+    to { -webkit-transform: rotate(360deg); }
+}
+
+/* Menu FAB Styles */
+.fab-container {
+    /* Positioned by Tailwind fixed classes */
+    z-index: 40; /* Ensure it's above most content but below modals */
+}
+
+.fab-action-button {
+    /* Tailwind handles most styling. These ensure smooth transitions for appearing/disappearing */
+    transition-property: opacity, transform, visibility;
+    transition-timing-function: ease-out;
+    transition-duration: 0.2s;
+}
+
+/* State when sub-buttons are visible */
+.fab-container.open .fab-action-button {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    visibility: visible;
+}
+
+/* Main FAB icon rotation */
+.fab-container.open #mainFabIcon {
+    transform: rotate(45deg);
+}
+
+/* Individual delays for staggered animation (optional but nice) */
+.fab-container.open #generateSopFabBtn {
+    transition-delay: 0.05s;
+}
+.fab-container.open #downloadAllFabBtn {
+    transition-delay: 0.1s;
+}
+.fab-container.open #printSopFabBtn {
+    transition-delay: 0.15s;
+}
+
+/* Print Styles */
+@media print {
+    body {
+        font-size: 10pt; /* Adjust base font size for print */
+        margin: 0;
+        padding: 0;
+        background-color: #fff; /* Ensure white background for print */
+        color: #000; /* Ensure black text */
+        width: 100%; /* Use full available width for calculations */
+    }
+
+    /* Hide non-printable elements */
+    header.bg-primary > div.text-lg, /* Subtitle in header */
+    header.bg-primary .flex, /* Upload/Download buttons in diagram header */
+    .fab-container,
+    #sopGeneratorModal,
+    #uploadStatus,
+    .steps-container + .mb-8 p-6.bg-white, /* Hide the entire "Risks and Mitigation" section for brevity, or target more specifically */
+    footer.bg-dark .text-xs /* Hide the confidential/proprietary paragraph if too long */
+    {
+        display: none !important;
+    }
+
+    /* General page layout for print */
+    .container {
+        max-width: 190mm; /* A4 width minus ~10mm margins each side */
+        width: 190mm !important;
+        margin: 10mm auto !important; /* Center content with margins */
+        padding: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    section {
+        margin-bottom: 10mm !important;
+        padding: 0 !important; /* Remove padding from sections */
+        box-shadow: none !important;
+        border: none !important;
+        page-break-inside: avoid; /* Try to avoid breaking sections across pages */
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid; /* Avoid page breaks immediately after headings */
+        color: #000 !important; /* Ensure headings are black */
+    }
+
+    header.bg-primary {
+        background-color: #fff !important; /* Make header background white for print */
+        color: #000 !important; /* Make header text black */
+        padding: 10mm 0 5mm 0 !important; /* Adjust header padding for print */
+        text-align: left !important; /* Align header text to left */
+        border-bottom: 1px solid #ccc; /* Add a light border to header */
+    }
+    header.bg-primary h1 {
+        font-size: 18pt !important;
+    }
+
+    .diagram-container {
+        width: 100% !important; /* Diagram takes full width of the 190mm container */
+        height: auto !important; /* Allow height to adjust to content */
+        min-height: 100mm !important; /* Ensure a reasonable minimum height */
+        max-height: none !important; /* Remove max-height for print */
+        overflow: visible !important; /* Show all content */
+        border: 1px solid #ccc !important; /* Add a light border */
+    }
+
+    .bjs-container {
+        /* Let bpmn-js handle scaling within its container if possible, or use transform: scale() */
+    }
+
+    .step-tree > li {
+        border-left-color: #666 !important;
+    }
+    .step-tree > li::before {
+        background-color: #666 !important;
+    }
+    .step-tree ul li::before {
+        color: #666 !important;
+    }
+
+    .bg-light {
+        background-color: #f9f9f9 !important; /* Lighten the description background slightly or make it white */
+        padding: 5mm !important;
+        border: 1px solid #eee;
+    }
+
+    .risk-item {
+        border-left-color: #c00 !important;
+        background-color: #ffebeb !important;
+        padding: 3mm !important;
+    }
+
+    footer.bg-dark {
+        background-color: #fff !important; /* Make footer background white */
+        color: #000 !important; /* Make footer text black */
+        padding: 5mm 0 0 0 !important;
+        border-top: 1px solid #ccc;
+        font-size: 8pt;
+    }
+    footer .document-controls span.font-semibold {
+        color: #333 !important;
+    }
+    footer .document-controls span.text-slate-100 {
+        color: #000 !important;
+    }
+
+    /* Ensure links are distinguishable if needed */
+    a {
+        color: #007bff !important; /* Standard blue for links */
+        text-decoration: underline !important;
+    }
+
+    /* Remove Tailwind background/text colors if they interfere with print */
+    .bg-primary, .text-white, .bg-dark, .text-slate-300, .text-slate-100, .text-slate-700, .text-slate-600, .text-red-700, .bg-red-50, .border-accent, .text-primary, .border-secondary {
+        /* These are overridden above for key elements, this is a broader reset if needed */
+        /* background-color: transparent !important; */
+        /* color: #000 !important; */
+        /* border-color: #000 !important; */
+    }
+}
