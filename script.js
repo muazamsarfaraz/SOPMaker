@@ -75,15 +75,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (window.BpmnJS) {
-        // Initialize viewer mode first
+        // Initialize viewer mode first (read-only)
         bpmnViewer = new window.BpmnJS({
             container: diagramContainer
         });
 
-        // Initialize modeler (will be used when editing)
-        bpmnModeler = new window.BpmnJS({
-            container: diagramContainer
-        });
+        // Don't initialize modeler until needed to avoid conflicts
+        bpmnModeler = null;
     } else {
         console.error('BpmnJS library is not loaded. Check script tags.');
         if(loadingMessageElement && diagramContainer) { // check diagramContainer exists
@@ -94,10 +92,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function openDiagram(xml) {
         currentSopData.bpmnXml = xml; // Store current BPMN XML
-        const activeViewer = isEditMode ? bpmnModeler : bpmnViewer;
 
-        if (!activeViewer) {
-            console.error('BPMN viewer/modeler is not initialized.');
+        // Only use this function for viewer mode now
+        // Edit mode handles its own diagram loading
+        if (isEditMode) {
+            return;
+        }
+
+        if (!bpmnViewer) {
+            console.error('BPMN viewer is not initialized.');
             if (uploadStatus) uploadStatus.textContent = 'Error: Diagram viewer not ready.';
             if (loadingMessageElement && diagramContainer) loadingMessageElement.style.display = 'flex';
             return;
@@ -113,12 +116,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (bjsContainerPre) bjsContainerPre.style.display = 'block';
 
         try {
-            await activeViewer.importXML(xml);
+            await bpmnViewer.importXML(xml);
             if (loadingMessageElement && diagramContainer) loadingMessageElement.style.display = 'none';
             console.log('BPMN XML imported successfully.');
             if (uploadStatus) uploadStatus.textContent = 'Diagram loaded successfully.';
 
-            const canvas = activeViewer.get('canvas');
+            const canvas = bpmnViewer.get('canvas');
             canvas.zoom('fit-viewport', 'auto');
             window.addEventListener('resize', () => {
                  canvas.zoom('fit-viewport', 'auto');
@@ -144,18 +147,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // BPMN Editing Functions
-    function enterEditMode() {
-        if (!bpmnModeler || !currentSopData.bpmnXml) {
-            console.error('Cannot enter edit mode: modeler not ready or no diagram loaded');
+    async function enterEditMode() {
+        if (!currentSopData.bpmnXml) {
+            console.error('Cannot enter edit mode: no diagram loaded');
             return;
+        }
+
+        // Initialize modeler if not already done
+        if (!bpmnModeler) {
+            try {
+                bpmnModeler = new window.BpmnJS({
+                    container: diagramContainer
+                });
+            } catch (err) {
+                console.error('Error initializing BPMN modeler:', err);
+                return;
+            }
         }
 
         isEditMode = true;
 
-        // Hide viewer, show modeler
+        // Destroy viewer to avoid conflicts
         if (bpmnViewer) {
-            const viewerContainer = diagramContainer.querySelector('.bjs-container');
-            if (viewerContainer) viewerContainer.style.display = 'none';
+            try {
+                bpmnViewer.destroy();
+            } catch (err) {
+                console.log('Error destroying viewer:', err);
+            }
         }
 
         // Show edit controls
@@ -177,10 +195,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Load diagram in modeler
-        openDiagram(currentSopData.bpmnXml);
+        try {
+            await bpmnModeler.importXML(currentSopData.bpmnXml);
+            if (loadingMessageElement) loadingMessageElement.style.display = 'none';
+            if (uploadStatus) uploadStatus.textContent = 'Diagram ready for editing.';
+
+            const canvas = bpmnModeler.get('canvas');
+            canvas.zoom('fit-viewport', 'auto');
+        } catch (err) {
+            console.error('Error loading diagram in modeler:', err);
+            if (uploadStatus) uploadStatus.textContent = `Error loading diagram for editing: ${err.message}`;
+        }
     }
 
-    function exitEditMode() {
+    async function exitEditMode() {
         isEditMode = false;
 
         // Hide edit controls
@@ -200,14 +228,33 @@ document.addEventListener('DOMContentLoaded', function() {
             editDiagramBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
         }
 
-        // Hide modeler, show viewer
+        // Destroy modeler to avoid conflicts
         if (bpmnModeler) {
-            const modelerContainer = diagramContainer.querySelector('.bjs-container');
-            if (modelerContainer) modelerContainer.style.display = 'none';
+            try {
+                bpmnModeler.destroy();
+            } catch (err) {
+                console.log('Error destroying modeler:', err);
+            }
+            bpmnModeler = null;
         }
 
-        // Load diagram in viewer
-        openDiagram(currentSopData.bpmnXml);
+        // Reinitialize viewer
+        try {
+            bpmnViewer = new window.BpmnJS({
+                container: diagramContainer
+            });
+
+            // Load diagram in viewer
+            await bpmnViewer.importXML(currentSopData.bpmnXml);
+            if (loadingMessageElement) loadingMessageElement.style.display = 'none';
+            if (uploadStatus) uploadStatus.textContent = 'Diagram loaded successfully.';
+
+            const canvas = bpmnViewer.get('canvas');
+            canvas.zoom('fit-viewport', 'auto');
+        } catch (err) {
+            console.error('Error loading diagram in viewer:', err);
+            if (uploadStatus) uploadStatus.textContent = `Error loading diagram: ${err.message}`;
+        }
     }
 
     async function saveDiagramChanges() {
