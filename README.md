@@ -104,27 +104,39 @@ My_SOP_Title/ (or chosen SOP title)
     *   Markdown for procedure steps is parsed by a custom JS function into styled HTML.
 *   **Styling:** Uses Tailwind CSS and custom styles in `style.css`.
 
+## Project Management
+
+**ClickUp Project:** [📋 SOPMaker](https://app.clickup.com/2564140/v/l/901210274245)
+**Space:** MUAZAM
+**List ID:** 901210274245
+
+### Recent Completions
+- ✅ **BPMN Editor Palette & Context Menus Fix** ([Task #86999mjtw](https://app.clickup.com/t/86999mjtw)) - Fixed blank palette and context menus in BPMN editor
+
 ## Future Enhancements
 
+### High Priority Features
+*   🎨 **Implement Swimlanes in BPMN Diagrams** ([Task #86999mj97](https://app.clickup.com/t/86999mj97)) - Add swimlane functionality for better process visualization and role separation
+*   📝 **Enhanced SOP Content Editing** ([Task #86999mj99](https://app.clickup.com/t/86999mj99)) - Improve editing capabilities with better formatting options and real-time preview
+*   🔐 **User Authentication & Permissions** ([Task #86999mja5](https://app.clickup.com/t/86999mja5)) - Implement user authentication system with role-based permissions
+*   🔄 **Version Control & History** ([Task #86999mjbc](https://app.clickup.com/t/86999mjbc)) - Comprehensive version control with change history and rollback capabilities
+
+### Normal Priority Features
+*   📊 **Advanced Control Measures Dashboard** ([Task #86999mj9a](https://app.clickup.com/t/86999mj9a)) - KPI tracking, metrics visualization, and performance monitoring
+*   🔄 **Process Template Library** ([Task #86999mj9k](https://app.clickup.com/t/86999mj9k)) - Pre-defined SOP templates for common business processes
+*   📱 **Mobile Responsive Design** ([Task #86999mj9m](https://app.clickup.com/t/86999mj9m)) - Optimize for mobile devices and tablets
+*   🔍 **Advanced Search & Filtering** ([Task #86999mj9n](https://app.clickup.com/t/86999mj9n)) - Comprehensive search across all SOPs with filtering
+*   📋 **SOP Approval Workflow** ([Task #86999mjaq](https://app.clickup.com/t/86999mjaq)) - Review and approval stages before publishing
+*   🎯 **Process Performance Metrics** ([Task #86999mjbd](https://app.clickup.com/t/86999mjbd)) - Define and track process performance indicators
+
+### Low Priority Features
+*   👥 **Multi-user Collaboration** ([Task #86999mj9j](https://app.clickup.com/t/86999mj9j)) - Collaborative editing with version control and change tracking
+*   📈 **SOP Analytics & Reporting** ([Task #86999mja3](https://app.clickup.com/t/86999mja3)) - Usage analytics and automated reporting capabilities
+
+### Legacy Enhancement Ideas
 *   **Backend Integration & Data Persistence:**
     *   Connect to a backend service for actual AI-powered SOP content generation (e.g., using OpenAI).
-    *   Implement robust server-side saving, retrieval, and management of multiple SOP documents (replacing the client-side ZIP/folder method for a more integrated experience).
-    *   SOP Versioning and History: Track changes and allow users to revert to previous versions.
-*   **User Management & Collaboration:**
-    *   User Authentication: Implement user accounts for personalized SOP management.
-    *   User Roles and Permissions: Define roles (viewer, editor, admin) for granular access control.
-    *   Enhanced Collaboration Features: Support for comments, review workflows, and SOP sharing.
-*   **Content Creation & Management:**
-    *   Rich Markdown/Text Editor: Integrate a WYSIWYG or advanced Markdown editor.
-    *   In-Page Editing: Allow more seamless direct editing of textual SOP content.
-    *   Direct BPMN Diagram Editing: Integrate `bpmn-js-modeler`.
-    *   SOP Templates: Provide a library of common SOP templates and allow users to save their own SOPs as templates.
-    *   Structured Metadata & Tagging: For better organization and search (with backend).
-    *   AI-Powered Content Refinement: Suggest improvements for clarity, consistency, and completeness.
-*   **Usability & Output:**
-    *   Customizable Export Formats: Allow exporting the complete SOP to formats like PDF or Word.
-    *   Comprehensive Accessibility Audit & Enhancements (WCAG).
-    *   Notifications & Reminders: For SOP review dates or workflow updates.
+    *   Implement robust server-side saving, retrieval, and management of multiple SOP documents.
 *   **Technical Improvements:**
     *   Advanced Error Handling and user-friendly feedback.
     *   Expanded Automated Testing (e.g., with Playwright Test runner).
