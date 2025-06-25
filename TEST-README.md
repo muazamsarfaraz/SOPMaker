@@ -44,8 +44,11 @@ npm run test
 # Static analysis only
 npm run test:static
 
-# Integration tests only (requires server running)
+# Integration tests only (tests against Railway production by default)
 npm run test:integration
+
+# Test against custom URL
+TEST_URL=http://localhost:3000 npm run test:integration
 ```
 
 ### Manual Test Execution
@@ -104,11 +107,22 @@ Validates the critical RACM replacement fix:
 
 ### Prerequisites
 ```bash
-# Install dependencies
+# Install dependencies (includes Playwright)
 npm install
 
 # Install Playwright browsers (first time only)
 npx playwright install
+```
+
+### Dependency Sync Fix
+If you encounter npm ci errors about package-lock.json being out of sync:
+```bash
+# Update package-lock.json
+npm install
+
+# Commit the updated lock file
+git add package-lock.json
+git commit -m "Update package-lock.json"
 ```
 
 ### Environment Setup
