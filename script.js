@@ -2541,15 +2541,15 @@ function displaySyncPreview(changedSection, syncResult) {
                                 (currentDesc.toLowerCase().includes('cooking') && !racmData.some(entry => entry.processStep.toLowerCase().includes('cook'))) ||
                                 (currentDesc.toLowerCase().includes('service') && currentDesc.toLowerCase().includes('customer') && !racmData.some(entry => entry.processStep.toLowerCase().includes('service')));
 
-                            const processStepsMatch = syncResult[section].some(update =>
-                                racmData.some(entry =>
-                                    entry.processStep && update.processStep &&
-                                    entry.processStep.toLowerCase().includes(update.processStep.toLowerCase().split(' ')[0])
-                                )
-                            );
-                            return (!isCompletelyDifferentProcess && processStepsMatch) ?
-                                `Will update ${syncResult[section].length} existing RACM entries with improved Key Risk, Key Control, Frequency, Evidence, and Risk Level` :
-                                `Will replace entire RACM matrix with ${syncResult[section].length} new entries for the updated process`;
+                            console.log('Preview Modal Debug:', {
+                                currentDesc: currentDesc.substring(0, 50),
+                                isCompletelyDifferentProcess,
+                                racmUpdatesCount: syncResult[section].length
+                            });
+
+                            return isCompletelyDifferentProcess ?
+                                `Will replace entire RACM matrix with ${syncResult[section].length} new entries for the updated process` :
+                                `Will update ${syncResult[section].length} existing RACM entries with improved Key Risk, Key Control, Frequency, Evidence, and Risk Level`;
                         })() :
                         section === 'bpmnSuggestions' ?
                         `BPMN Suggestions: ${syncResult[section].substring(0, 200)}...` :
@@ -2632,7 +2632,7 @@ async function applySyncChanges() {
         }
 
         if (syncResult.racmUpdates && Array.isArray(syncResult.racmUpdates)) {
-            // Check if the current description contains keywords that indicate a completely different process
+            // Simplified detection logic for completely different processes
             const currentDesc = currentSopData.descriptionMd || '';
             const isCompletelyDifferentProcess =
                 (currentDesc.toLowerCase().includes('tea') && !racmData.some(entry => entry.processStep.toLowerCase().includes('tea'))) ||
@@ -2640,16 +2640,31 @@ async function applySyncChanges() {
                 (currentDesc.toLowerCase().includes('cooking') && !racmData.some(entry => entry.processStep.toLowerCase().includes('cook'))) ||
                 (currentDesc.toLowerCase().includes('service') && currentDesc.toLowerCase().includes('customer') && !racmData.some(entry => entry.processStep.toLowerCase().includes('service')));
 
-            // Also check if the process steps are completely different (indicating a new process)
-            const processStepsMatch = syncResult.racmUpdates.some(update =>
-                racmData.some(entry =>
-                    entry.processStep && update.processStep &&
-                    entry.processStep.toLowerCase().includes(update.processStep.toLowerCase().split(' ')[0])
-                )
-            );
+            console.log('RACM Update Debug:', {
+                currentDesc: currentDesc.substring(0, 100),
+                isCompletelyDifferentProcess,
+                racmUpdatesCount: syncResult.racmUpdates.length,
+                existingRacmCount: racmData.length
+            });
 
-            if (!isCompletelyDifferentProcess && processStepsMatch) {
+            if (isCompletelyDifferentProcess) {
+                // Force complete replacement for different processes
+                console.log('Forcing complete RACM replacement for different process');
+                racmData = syncResult.racmUpdates.map(update => ({
+                    stepNumber: update.stepNumber,
+                    processStep: update.processStep || `Process Step ${update.stepNumber}`,
+                    riskDescription: update.keyRisk,
+                    controlDescription: update.keyControl,
+                    controlOwner: 'Process Owner',
+                    controlFrequency: update.frequency,
+                    controlType: 'Preventive',
+                    evidenceAuditTest: update.evidence,
+                    cosoComponent: 'Control Activities',
+                    riskLevel: update.riskLevel
+                }));
+            } else {
                 // Update existing RACM entries (same process)
+                console.log('Updating existing RACM entries for same process');
                 syncResult.racmUpdates.forEach(update => {
                     const existingEntryIndex = racmData.findIndex(entry =>
                         entry.stepNumber === update.stepNumber
@@ -2680,20 +2695,6 @@ async function applySyncChanges() {
                         });
                     }
                 });
-            } else {
-                // Replace entire RACM table (different process)
-                racmData = syncResult.racmUpdates.map(update => ({
-                    stepNumber: update.stepNumber,
-                    processStep: update.processStep || `Process Step ${update.stepNumber}`,
-                    riskDescription: update.keyRisk,
-                    controlDescription: update.keyControl,
-                    controlOwner: 'Process Owner',
-                    controlFrequency: update.frequency,
-                    controlType: 'Preventive',
-                    evidenceAuditTest: update.evidence,
-                    cosoComponent: 'Control Activities',
-                    riskLevel: update.riskLevel
-                }));
             }
             renderRacmTable();
         }

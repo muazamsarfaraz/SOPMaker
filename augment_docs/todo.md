@@ -462,7 +462,63 @@ Keep BPMN Diagram, Description, and RACM sections synchronized using OpenAI LLM 
 - [ ] Test sync with large/complex SOPs
 
 ### 7 · Finalise & Commit
-- [ ] Commit sync system implementation
+- [x] Commit sync system implementation
+- [x] Mark task **DONE**
+
+---
+
+## Task 10: Fix RACM Process Replacement for Different SOPs
+
+### 🔧 **Critical Issue Identified**
+When user changes description to completely different process (e.g., "make a posh cup of tea"), the AI provides relevant RACM entries but the system doesn't properly replace the process step names.
+
+#### **Current Behavior**:
+- ✅ Description: Enhanced with tea-making content
+- ✅ BPMN: Tea-making process suggestions
+- ❌ RACM: Still shows "Receive and validate request", "Review and approve request" (payment processing steps)
+
+#### **Expected Behavior**:
+- ✅ Description: Enhanced with tea-making content
+- ✅ BPMN: Tea-making process suggestions
+- ✅ RACM: Should show "Select tea leaves", "Heat water", "Steep tea" (tea-making steps)
+
+### 1 · Plan
+- [x] Analyze root cause of RACM process replacement logic
+- [x] Identify why process steps aren't being updated correctly
+- [x] Design improved logic for detecting completely different processes
+- [x] Plan force replacement strategy for different process types
+
+### 2 · Tests First (TDD)
+- [ ] Write tests for process type detection (tea vs payment vs manufacturing)
+- [ ] Write tests for complete RACM replacement logic
+- [ ] Write tests for process step name updates
+- [ ] Write tests for preview modal showing correct replacement message
+
+### 3 · Implement
+- [ ] Fix process detection logic to force complete replacement
+- [ ] Ensure process step names are properly updated
+- [ ] Update preview modal to show correct replacement vs update message
+- [ ] Test with multiple different process types (tea, manufacturing, service)
+
+### 4 · Update Documentation
+- [ ] Document process replacement logic
+- [ ] Add examples of different process types
+- [ ] Update troubleshooting guide
+
+### 5 · Local Validation
+- [ ] Test tea making process replacement
+- [ ] Test manufacturing process replacement
+- [ ] Test service process replacement
+- [ ] Verify process steps are correctly displayed
+
+### 6 · Integration Testing
+- [ ] Test on Railway deployment
+- [ ] Test with GPT-4o-mini integration
+- [ ] Verify all sync types work correctly
+- [ ] Test edge cases and error handling
+
+### 7 · Finalise & Commit
+- [ ] Commit RACM process replacement fix
 - [ ] Mark task **DONE**
 
 ---
@@ -474,9 +530,10 @@ Keep BPMN Diagram, Description, and RACM sections synchronized using OpenAI LLM 
 4. **Task 4**: Description Markdown Fix + BPMN Swimlanes ✅ **DONE**
 5. **Task 5**: BPMN Diagram Editing ✅ **DONE**
 6. **Task 8**: Fix BPMN Edit Diagram Toggle Issue ✅ **DONE**
-7. **Task 9**: AI-Powered Section Synchronization System ✅ **DONE** (OpenAI Integrated)
-8. **Task 6**: Architectural Review & Production Readiness 📋 **PLANNED**
-9. **Task 7**: Enterprise Architecture & Scalability 🏗️ **PLANNED**
+7. **Task 9**: AI-Powered Section Synchronization System ✅ **DONE** (OpenAI GPT-4o-mini Integrated)
+8. **Task 10**: Fix RACM Process Replacement for Different SOPs 🔧 **IN PROGRESS**
+9. **Task 6**: Architectural Review & Production Readiness 📋 **PLANNED**
+10. **Task 7**: Enterprise Architecture & Scalability 🏗️ **PLANNED**
 
 ## Quick Win Roadmap (Based on Architectural Review)
 1. **Refactor scripts** into ES modules, lazy-load BPMN bundle
