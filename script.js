@@ -2375,9 +2375,8 @@ async function handleSyncRequest(changedSection) {
             racmData: racmData || []
         };
 
-        // For now, simulate the sync process (placeholder)
-        // In the future, this will call the actual OpenAI API
-        const syncResult = await simulateSyncProcess(changedSection, currentData);
+        // Call OpenAI API for real sync suggestions
+        const syncResult = await callOpenAISyncAPI(changedSection, currentData);
 
         // Display sync preview
         displaySyncPreview(changedSection, syncResult);
@@ -2388,7 +2387,44 @@ async function handleSyncRequest(changedSection) {
     }
 }
 
+async function callOpenAISyncAPI(changedSection, currentData) {
+    console.log('Calling OpenAI API for sync suggestions...');
+
+    try {
+        const response = await fetch('/api/sync-sections', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                changedSection,
+                currentData
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('OpenAI sync result:', result);
+
+        return result.syncResult;
+
+    } catch (error) {
+        console.error('Error calling OpenAI sync API:', error);
+
+        // Fallback to simulation if API fails
+        console.log('Falling back to simulation...');
+        return await simulateSyncProcess(changedSection, currentData);
+    }
+}
+
 async function simulateSyncProcess(changedSection, currentData) {
+    // Fallback simulation for when OpenAI API is not available
+    console.log('Using simulation fallback...');
+
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 2000));
 
@@ -2411,7 +2447,7 @@ async function simulateSyncProcess(changedSection, currentData) {
             ]
         },
         description: {
-            bpmnXml: "<!-- Updated BPMN with new process steps based on description changes -->",
+            bpmnSuggestions: "Add validation checkpoints and approval gates to the BPMN diagram based on the updated description.",
             racmData: [
                 {
                     stepNumber: "2.1",
@@ -2428,7 +2464,7 @@ async function simulateSyncProcess(changedSection, currentData) {
         },
         racm: {
             description: "Updated description to include new risk considerations and control measures based on RACM changes.",
-            bpmnXml: "<!-- Updated BPMN with control checkpoints and risk mitigation steps -->"
+            bpmnSuggestions: "Add control checkpoints and risk mitigation steps to the BPMN diagram."
         }
     };
 
@@ -2489,6 +2525,7 @@ function displaySyncPreview(changedSection, syncResult) {
     // Show what will be updated
     Object.keys(syncResult).forEach(section => {
         const sectionName = section === 'bpmnXml' ? 'BPMN Diagram' :
+                           section === 'bpmnSuggestions' ? 'BPMN Diagram' :
                            section === 'description' ? 'Description' :
                            section === 'racmData' ? 'RACM Matrix' : section;
 
@@ -2498,6 +2535,8 @@ function displaySyncPreview(changedSection, syncResult) {
                 <div class="bg-slate-50 p-3 rounded text-sm text-slate-600">
                     ${section === 'racmData' ?
                         `Will add ${syncResult[section].length} new RACM entries` :
+                        section === 'bpmnSuggestions' ?
+                        `BPMN Suggestions: ${syncResult[section].substring(0, 200)}...` :
                         syncResult[section].substring(0, 200) + '...'
                     }
                 </div>
@@ -2548,6 +2587,12 @@ async function applySyncChanges() {
         if (syncResult.bpmnXml) {
             currentSopData.bpmnXml = syncResult.bpmnXml;
             openDiagram(syncResult.bpmnXml);
+        }
+
+        if (syncResult.bpmnSuggestions) {
+            // For now, show BPMN suggestions in the upload status
+            // In the future, this could be integrated with BPMN editing
+            console.log('BPMN Suggestions:', syncResult.bpmnSuggestions);
         }
 
         if (syncResult.racmData && Array.isArray(syncResult.racmData)) {

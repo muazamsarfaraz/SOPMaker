@@ -57,6 +57,10 @@ SOP_Name/
   - **Modeler Mode**: Interactive editing with palette and context pad
   - **Mode Switching**: Seamless transition between view and edit modes
 - **Content Editors**: Inline editing for all text sections
+- **AI Sync System**: Three-way synchronization between BPMN, Description, and RACM
+  - **Sync Buttons**: Purple "Sync with AI" buttons in each section
+  - **Preview Modal**: Interactive change preview with accept/reject options
+  - **Bidirectional Sync**: Any section can trigger updates to others
 - **File Manager**: Save/load functionality with ZIP handling
 - **FAB Menu**: Floating action button for primary actions
 
@@ -84,3 +88,35 @@ const activeViewer = isEditMode ? bpmnModeler : bpmnViewer;
 - **SOP Generation**: Generated BPMN works seamlessly with editing
 - **Save/Load**: Edited diagrams are preserved in ZIP files
 - **State Management**: currentSopData.bpmnXml stores current diagram state
+
+## AI Sync System Architecture
+
+### Sync Flow
+```javascript
+// User clicks sync button → handleSyncRequest(section)
+// 1. Show modal with loading state
+// 2. Collect current data from all sections
+// 3. Simulate/call AI service for suggestions
+// 4. Display preview with proposed changes
+// 5. User accepts/rejects → apply changes or cancel
+```
+
+### Sync Scenarios
+- **BPMN → Others**: Process flow changes update description and risk matrix
+- **Description → Others**: Process description changes update BPMN and controls
+- **RACM → Others**: Risk/control changes update description and process flow
+
+### Data Flow
+```javascript
+const currentData = {
+    bpmnXml: currentSopData.bpmnXml,
+    description: currentSopData.descriptionMd,
+    racmData: racmData || []
+};
+```
+
+### Future Integration
+- Replace `simulateSyncProcess()` with actual OpenAI API calls
+- Add change detection to identify what specifically changed
+- Implement conflict resolution for competing changes
+- Add sync history and undo/redo capabilities
