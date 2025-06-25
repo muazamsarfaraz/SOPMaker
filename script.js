@@ -2431,39 +2431,33 @@ async function simulateSyncProcess(changedSection, currentData) {
     // Simulate sync suggestions based on changed section
     const suggestions = {
         bpmn: {
-            description: "Updated description to reflect the new process flow with additional validation steps and enhanced security measures.",
-            racmData: [
+            descriptionEnhancement: "Additional validation steps and enhanced security measures have been incorporated based on the updated BPMN process flow.",
+            racmUpdates: [
                 {
-                    stepNumber: "1.1",
-                    processStep: "Document Validation",
-                    riskDescription: "Invalid or incomplete documentation",
-                    controlDescription: "Automated document validation system",
-                    controlOwner: "System Administrator",
-                    controlFrequency: "Real-time",
-                    controlType: "Preventive",
-                    evidenceAuditTest: "System validation logs",
-                    cosoComponent: "Control Activities"
+                    stepNumber: "1",
+                    keyRisk: "Invalid or incomplete request data",
+                    keyControl: "Automated validation checks and mandatory field verification",
+                    frequency: "Continuous",
+                    evidence: "System logs showing validation results and error messages",
+                    riskLevel: "Medium"
                 }
             ]
         },
         description: {
             bpmnSuggestions: "Add validation checkpoints and approval gates to the BPMN diagram based on the updated description.",
-            racmData: [
+            racmUpdates: [
                 {
-                    stepNumber: "2.1",
-                    processStep: "Enhanced Review Process",
-                    riskDescription: "Inadequate review procedures",
-                    controlDescription: "Multi-level approval workflow",
-                    controlOwner: "Department Manager",
-                    controlFrequency: "Per transaction",
-                    controlType: "Detective",
-                    evidenceAuditTest: "Approval audit trail",
-                    cosoComponent: "Control Environment"
+                    stepNumber: "2",
+                    keyRisk: "Unauthorized approval or inadequate review",
+                    keyControl: "Role-based approval workflow with escalation procedures",
+                    frequency: "Per incident",
+                    evidence: "Approval audit trail with timestamps and user IDs",
+                    riskLevel: "High"
                 }
             ]
         },
         racm: {
-            description: "Updated description to include new risk considerations and control measures based on RACM changes.",
+            descriptionEnhancement: "Enhanced risk considerations and control measures have been integrated based on the updated RACM analysis.",
             bpmnSuggestions: "Add control checkpoints and risk mitigation steps to the BPMN diagram."
         }
     };
@@ -2526,17 +2520,23 @@ function displaySyncPreview(changedSection, syncResult) {
     Object.keys(syncResult).forEach(section => {
         const sectionName = section === 'bpmnXml' ? 'BPMN Diagram' :
                            section === 'bpmnSuggestions' ? 'BPMN Diagram' :
-                           section === 'description' ? 'Description' :
-                           section === 'racmData' ? 'RACM Matrix' : section;
+                           section === 'description' ? 'Description (Complete Replacement)' :
+                           section === 'descriptionEnhancement' ? 'Description (Enhancement)' :
+                           section === 'racmData' ? 'RACM Matrix (New Entries)' :
+                           section === 'racmUpdates' ? 'RACM Matrix (Updates)' : section;
 
         previewHtml += `
             <div class="mb-6 p-4 border border-slate-200 rounded-md">
-                <h5 class="font-medium text-slate-700 mb-2">📝 ${sectionName} Updates:</h5>
+                <h5 class="font-medium text-slate-700 mb-2">📝 ${sectionName}:</h5>
                 <div class="bg-slate-50 p-3 rounded text-sm text-slate-600">
                     ${section === 'racmData' ?
                         `Will add ${syncResult[section].length} new RACM entries` :
+                        section === 'racmUpdates' ?
+                        `Will update ${syncResult[section].length} existing RACM entries with improved Key Risk, Key Control, Frequency, Evidence, and Risk Level` :
                         section === 'bpmnSuggestions' ?
                         `BPMN Suggestions: ${syncResult[section].substring(0, 200)}...` :
+                        section === 'descriptionEnhancement' ?
+                        `Enhancement: ${syncResult[section].substring(0, 200)}...` :
                         syncResult[section].substring(0, 200) + '...'
                     }
                 </div>
@@ -2577,10 +2577,22 @@ async function applySyncChanges() {
     try {
         // Apply changes to the appropriate sections
         if (syncResult.description) {
+            // Complete replacement (for backward compatibility)
             currentSopData.descriptionMd = syncResult.description;
             const descriptionContainer = document.getElementById('descriptionContainer');
             if (descriptionContainer) {
                 descriptionContainer.innerHTML = parseMarkdownToHtml(syncResult.description);
+            }
+        }
+
+        if (syncResult.descriptionEnhancement) {
+            // Enhancement mode - append to existing description
+            const currentDescription = currentSopData.descriptionMd || '';
+            const enhancedDescription = currentDescription + '\n\n' + syncResult.descriptionEnhancement;
+            currentSopData.descriptionMd = enhancedDescription;
+            const descriptionContainer = document.getElementById('descriptionContainer');
+            if (descriptionContainer) {
+                descriptionContainer.innerHTML = parseMarkdownToHtml(enhancedDescription);
             }
         }
 
@@ -2596,8 +2608,28 @@ async function applySyncChanges() {
         }
 
         if (syncResult.racmData && Array.isArray(syncResult.racmData)) {
-            // Add new RACM entries
+            // Add new RACM entries (for backward compatibility)
             racmData = [...(racmData || []), ...syncResult.racmData];
+            renderRacmTable();
+        }
+
+        if (syncResult.racmUpdates && Array.isArray(syncResult.racmUpdates)) {
+            // Update existing RACM entries
+            syncResult.racmUpdates.forEach(update => {
+                const existingEntryIndex = racmData.findIndex(entry =>
+                    entry.stepNumber === update.stepNumber
+                );
+
+                if (existingEntryIndex !== -1) {
+                    // Update existing entry
+                    const existingEntry = racmData[existingEntryIndex];
+                    if (update.keyRisk) existingEntry.riskDescription = update.keyRisk;
+                    if (update.keyControl) existingEntry.controlDescription = update.keyControl;
+                    if (update.frequency) existingEntry.controlFrequency = update.frequency;
+                    if (update.evidence) existingEntry.evidenceAuditTest = update.evidence;
+                    if (update.riskLevel) existingEntry.riskLevel = update.riskLevel;
+                }
+            });
             renderRacmTable();
         }
 

@@ -62,75 +62,69 @@ async function generateSyncSuggestions(changedSection, currentData) {
 
   // Create context-aware prompts based on which section changed
   const prompts = {
-    bpmn: `You are an expert business process analyst. A BPMN diagram has been modified. Based on the current process flow, suggest updates to the Description and RACM (Risk and Control Matrix).
+    bpmn: `You are an expert business process analyst. A BPMN diagram has been modified. Based on the current process flow, suggest enhancements to the Description and updates to the RACM (Risk and Control Matrix).
 
 Current BPMN: ${bpmnXml ? bpmnXml.substring(0, 1000) + '...' : 'Not provided'}
 Current Description: ${description || 'Not provided'}
-Current RACM entries: ${racmData ? racmData.length : 0} entries
+Current RACM entries: ${JSON.stringify(racmData || [], null, 2)}
 
 Please provide:
-1. An updated description that reflects the current BPMN process flow
-2. New RACM entries that address risks in the updated process
+1. Enhanced description that builds upon the existing content and incorporates insights from the BPMN changes
+2. Updates to existing RACM entries with improved Key Risk, Key Control, Frequency, Evidence, and Risk Level
 
 Respond in JSON format:
 {
-  "description": "Updated description text...",
-  "racmData": [
+  "descriptionEnhancement": "Additional content to enhance the existing description...",
+  "racmUpdates": [
     {
-      "stepNumber": "X.X",
-      "processStep": "Step name",
-      "riskDescription": "Risk description",
-      "controlDescription": "Control description",
-      "controlOwner": "Owner",
-      "controlFrequency": "Frequency",
-      "controlType": "Type",
-      "evidenceAuditTest": "Evidence",
-      "cosoComponent": "COSO component"
+      "stepNumber": "existing step number to update",
+      "keyRisk": "Updated key risk description",
+      "keyControl": "Updated key control description",
+      "frequency": "Updated frequency",
+      "evidence": "Updated evidence/audit test",
+      "riskLevel": "Updated risk level (Low/Medium/High)"
     }
   ]
 }`,
 
-    description: `You are an expert business process analyst. A process description has been updated. Based on the new description, suggest updates to the BPMN diagram and RACM.
+    description: `You are an expert business process analyst. A process description has been updated. Based on the new description, suggest updates to the BPMN diagram and enhancements to the RACM.
 
 Current Description: ${description || 'Not provided'}
 Current BPMN: ${bpmnXml ? 'BPMN diagram exists' : 'No BPMN provided'}
-Current RACM entries: ${racmData ? racmData.length : 0} entries
+Current RACM entries: ${JSON.stringify(racmData || [], null, 2)}
 
 Please provide:
 1. Suggestions for BPMN diagram updates (describe what should be added/changed)
-2. New RACM entries that align with the updated description
+2. Updates to existing RACM entries with improved Key Risk, Key Control, Frequency, Evidence, and Risk Level
 
 Respond in JSON format:
 {
   "bpmnSuggestions": "Describe what should be updated in the BPMN diagram...",
-  "racmData": [
+  "racmUpdates": [
     {
-      "stepNumber": "X.X",
-      "processStep": "Step name",
-      "riskDescription": "Risk description",
-      "controlDescription": "Control description",
-      "controlOwner": "Owner",
-      "controlFrequency": "Frequency",
-      "controlType": "Type",
-      "evidenceAuditTest": "Evidence",
-      "cosoComponent": "COSO component"
+      "stepNumber": "existing step number to update",
+      "keyRisk": "Updated key risk description",
+      "keyControl": "Updated key control description",
+      "frequency": "Updated frequency",
+      "evidence": "Updated evidence/audit test",
+      "riskLevel": "Updated risk level (Low/Medium/High)"
     }
   ]
 }`,
 
-    racm: `You are an expert risk management analyst. The RACM (Risk and Control Matrix) has been updated. Based on the new risk and control information, suggest updates to the Description and BPMN diagram.
+    racm: `You are an expert risk management analyst. The RACM (Risk and Control Matrix) has been updated. Based on the new risk and control information, suggest enhancements to the Description and BPMN diagram.
 
 Current RACM entries: ${JSON.stringify(racmData || [], null, 2)}
 Current Description: ${description || 'Not provided'}
 Current BPMN: ${bpmnXml ? 'BPMN diagram exists' : 'No BPMN provided'}
 
 Please provide:
-1. An updated description that incorporates the new risk considerations
+1. Enhanced description that builds upon existing content and incorporates the new risk considerations
 2. Suggestions for BPMN diagram updates to include control checkpoints
 
 Respond in JSON format:
 {
-  "description": "Updated description with risk considerations...",
+  "descriptionEnhancement": "Additional content to enhance the existing description with risk considerations...",
   "bpmnSuggestions": "Describe what control checkpoints should be added to the BPMN..."
 }`
   };
