@@ -1,12 +1,17 @@
+// Global variables for BPMN functionality
+let bpmnViewer;
+let bpmnModeler;
+let isEditMode = false;
+
+// Make isEditMode accessible via window object
+window.isEditMode = isEditMode;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initial BPMN XML is now in initial_diagram.bpmn
 
     const diagramContainer = document.getElementById('diagram');
     const uploadStatus = document.getElementById('uploadStatus');
-    let bpmnViewer;
-    let bpmnModeler;
-    let isEditMode = false;
-    const loadingMessageElement = diagramContainer.querySelector('.loading-message');
+    const loadingMessageElement = diagramContainer ? diagramContainer.querySelector('.loading-message') : null;
 
     // BPMN editing elements
     const editDiagramBtn = document.getElementById('editDiagramBtn');
@@ -74,16 +79,29 @@ document.addEventListener('DOMContentLoaded', function() {
         // return; // Allow other UI like FAB to still work
     }
 
-    if (window.BpmnJS) {
-        // Initialize viewer mode first (read-only)
-        bpmnViewer = new window.BpmnJS({
-            container: diagramContainer
-        });
+    if (window.BpmnJS && diagramContainer) {
+        try {
+            // Initialize viewer mode first (read-only)
+            bpmnViewer = new window.BpmnJS({
+                container: diagramContainer
+            });
 
-        // Don't initialize modeler until needed to avoid conflicts
-        bpmnModeler = null;
+            // Make viewer globally accessible for debugging
+            window.bpmnViewer = bpmnViewer;
+
+            // Don't initialize modeler until needed to avoid conflicts
+            bpmnModeler = null;
+
+            console.log('BPMN viewer initialized successfully');
+        } catch (err) {
+            console.error('Error initializing BPMN viewer:', err);
+            if(loadingMessageElement) {
+                loadingMessageElement.innerHTML = '<div class="text-red-600 p-4 text-center">Error initializing BPMN viewer: ' + err.message + '</div>';
+                loadingMessageElement.style.display = 'flex';
+            }
+        }
     } else {
-        console.error('BpmnJS library is not loaded. Check script tags.');
+        console.error('BpmnJS library is not loaded or diagram container not found. Check script tags.');
         if(loadingMessageElement && diagramContainer) { // check diagramContainer exists
             loadingMessageElement.innerHTML = '<div class="text-red-600 p-4 text-center">Error: BPMN Modeler library (BpmnJS) not found. Please check the script link.</div>';
             loadingMessageElement.style.display = 'flex';
@@ -171,8 +189,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // BPMN Editing Functions
-    async function enterEditMode() {
+    // BPMN Editing Functions (make globally accessible)
+    window.enterEditMode = async function() {
         if (!currentSopData.bpmnXml) {
             console.error('Cannot enter edit mode: no diagram loaded');
             return;
@@ -198,6 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         isEditMode = true;
+        window.isEditMode = true;
 
         // Destroy viewer to avoid conflicts
         if (bpmnViewer) {
@@ -250,10 +269,11 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error loading diagram in modeler:', err);
             if (uploadStatus) uploadStatus.textContent = `Error loading diagram for editing: ${err.message}`;
         }
-    }
+    };
 
-    async function exitEditMode() {
+    window.exitEditMode = async function() {
         isEditMode = false;
+        window.isEditMode = false;
 
         // Hide edit controls
         if (diagramEditControls) {
@@ -324,22 +344,28 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error loading diagram in viewer:', err);
             if (uploadStatus) uploadStatus.textContent = `Error loading diagram: ${err.message}`;
         }
-    }
+    };
 
     async function saveDiagramChanges() {
-        if (!bpmnModeler || !isEditMode) {
+        console.log('saveDiagramChanges called');
+        console.log('bpmnModeler exists:', !!bpmnModeler);
+        console.log('isEditMode:', window.isEditMode);
+
+        if (!bpmnModeler || !window.isEditMode) {
             console.error('Cannot save: not in edit mode or modeler not ready');
             return;
         }
 
         try {
+            console.log('Saving diagram changes...');
             const { xml } = await bpmnModeler.saveXML({ format: true });
             currentSopData.bpmnXml = xml;
 
             if (uploadStatus) uploadStatus.textContent = 'Diagram changes saved successfully.';
 
             // Exit edit mode and return to viewer
-            exitEditMode();
+            console.log('Calling window.exitEditMode...');
+            window.exitEditMode();
 
             // Show success message briefly
             setTimeout(() => {
@@ -2000,13 +2026,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Assign event listeners for BPMN editing
     if (editDiagramBtn) editDiagramBtn.addEventListener('click', () => {
-        if (isEditMode) {
-            exitEditMode();
+        console.log('Edit button clicked, current isEditMode:', window.isEditMode);
+        if (window.isEditMode) {
+            console.log('Calling exitEditMode...');
+            window.exitEditMode();
         } else {
-            enterEditMode();
+            console.log('Calling enterEditMode...');
+            window.enterEditMode();
         }
     });
-    if (cancelDiagramEdit) cancelDiagramEdit.addEventListener('click', exitEditMode);
+    if (cancelDiagramEdit) cancelDiagramEdit.addEventListener('click', window.exitEditMode);
     if (saveDiagramEdit) saveDiagramEdit.addEventListener('click', saveDiagramChanges);
 
     // Assign event listeners to FAB Menu buttons

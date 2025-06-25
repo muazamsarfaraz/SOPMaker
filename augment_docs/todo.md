@@ -218,15 +218,210 @@
 
 ---
 
+## Task 6: Architectural Review & Production Readiness
+
+### 📋 **Architect-Level Analysis** (Based on External Review)
+
+#### ✅ **Current Strengths**
+- Single-page prototype with modern UI stack (Tailwind v3 + Google Inter)
+- BPMN-js integration with edit/save/upload workflow
+- Editable RACM grid with add/edit/delete functionality
+- Floating action button (FAB) menu for power-user actions
+- Coherent color palette and responsive behavior
+
+#### 🔧 **Immediate "Hygiene" Fixes** (Low-effort, High Pay-off)
+
+### 1 · Plan
+- [ ] **Accessibility & Semantics**: Add `<main>`, `<nav>`, `<section>`, `<footer>` landmarks
+- [ ] **ARIA Labels**: Add `aria-label` to icon-only FAB buttons for screen readers
+- [ ] **Color Contrast**: Ensure WCAG 2.2 AA compliance (white text on accent red)
+- [ ] **Script Cleanup**: Remove empty inline `<script>` block, split embedded scripts
+- [ ] **Performance**: Defer heavy libraries (bpmn-modeler.development.js ≈800 KB)
+- [ ] **Input Validation**: Add try/catch for XML imports with friendly error messages
+- [ ] **Data Persistence**: Implement localStorage for RACM edits
+
+### 2 · Tests First (TDD)
+- [ ] Write Jest/Puppeteer smoke tests:
+  - [ ] Load page → confirm BPMN canvas initializes
+  - [ ] Add RACM row → save → reload → row persists
+  - [ ] Upload malformed XML → error alert visible
+- [ ] Write accessibility tests for screen reader compatibility
+- [ ] Write performance tests for large BPMN files
+
+### 3 · Implement
+- [ ] **Accessibility Improvements**:
+  - [ ] Add semantic HTML landmarks
+  - [ ] Implement ARIA labels and descriptions
+  - [ ] Ensure keyboard navigation works
+  - [ ] Fix color contrast issues
+- [ ] **Performance Optimizations**:
+  - [ ] Lazy-load BPMN bundle with `type="module"` + `import()`
+  - [ ] Implement progress indicators for long operations
+  - [ ] Add file size validation for uploads
+- [ ] **Data Persistence**:
+  - [ ] Add localStorage for RACM data
+  - [ ] Implement auto-save functionality
+  - [ ] Add data export/import capabilities
+
+### 4 · Update Documentation
+- [ ] Document accessibility features and compliance
+- [ ] Add performance optimization guide
+- [ ] Document data persistence and storage options
+- [ ] Create deployment guide for production environments
+
+### 5 · Local Validation
+- [ ] Test with screen readers (NVDA, JAWS)
+- [ ] Validate WCAG 2.2 AA compliance
+- [ ] Test performance with large files
+- [ ] Verify data persistence across sessions
+
+### 6 · Integration Testing
+- [ ] Test accessibility with all features
+- [ ] Test performance under load
+- [ ] Verify data integrity with persistence
+- [ ] Test error handling and recovery
+
+### 7 · Finalise & Commit
+- [ ] Commit accessibility and performance improvements
+- [ ] Mark task **DONE**
+
+---
+
+## Task 7: Enterprise Architecture & Scalability
+
+### 🏗️ **Architectural Considerations** (Before Business Rollout)
+
+### 1 · Plan
+- [ ] **Data Storage Strategy**:
+  - [ ] Evaluate client-side only (IndexedDB/localStorage) vs serverless (Firebase/Supabase)
+  - [ ] Design enterprise REST/GraphQL endpoints for compliance DB integration
+  - [ ] Plan data migration strategy from prototype to production
+- [ ] **Version Control & Audit Trail**:
+  - [ ] Design immutable snapshot system for regulatory compliance
+  - [ ] Plan Git/S3 integration for version storage
+  - [ ] Design audit metadata (who/when/why) tracking
+- [ ] **Role-Based Authorization**:
+  - [ ] Design permission system (display-only vs edit vs approve)
+  - [ ] Plan JWT/session role integration
+  - [ ] Design role-based UI hiding/showing
+
+### 2 · Tests First (TDD)
+- [ ] Write tests for data storage abstraction layer
+- [ ] Write tests for version control and audit trail
+- [ ] Write tests for role-based access control
+- [ ] Write tests for bulk import/export functionality
+
+### 3 · Implement
+- [ ] **Backend Architecture**:
+  - [ ] Create Node/Express API stub for RACM POST/GET
+  - [ ] Implement data storage abstraction layer
+  - [ ] Add version control with immutable snapshots
+  - [ ] Implement audit trail with metadata tracking
+- [ ] **Authorization System**:
+  - [ ] Add role-based access control
+  - [ ] Implement JWT/session integration
+  - [ ] Add permission-based UI rendering
+- [ ] **Enterprise Features**:
+  - [ ] Add bulk import/export (Excel/CSV)
+  - [ ] Implement search and filtering for RACM grid
+  - [ ] Add keyboard shortcuts for power users
+  - [ ] Implement dark mode toggle
+
+### 4 · Update Documentation
+- [ ] Document enterprise architecture decisions
+- [ ] Create deployment guide for different environments
+- [ ] Document security and compliance features
+- [ ] Add API documentation for backend integration
+
+### 5 · Local Validation
+- [ ] Test with pilot group (5-10 users)
+- [ ] Validate role-based access control
+- [ ] Test bulk operations with large datasets
+- [ ] Verify audit trail functionality
+
+### 6 · Integration Testing
+- [ ] Test with existing GRC tooling integration
+- [ ] Test SSO integration
+- [ ] Verify compliance with regulatory requirements
+- [ ] Test disaster recovery and backup procedures
+
+### 7 · Finalise & Commit
+- [ ] Commit enterprise architecture features
+- [ ] Mark task **DONE**
+
+---
+
+## Task 8: Fix BPMN Edit Diagram Toggle Issue
+
+### 🐛 **Current Issue**
+- Edit Diagram toggle button not working properly
+- BPMN viewer/modeler initialization issues
+- Event listeners not properly attached
+- Global variable scope problems
+
+### 1 · Plan
+- [x] Investigate BPMN viewer initialization failure
+- [x] Debug event listener attachment issues
+- [x] Fix variable scope problems (isEditMode, bpmnViewer, bpmnModeler)
+- [x] Ensure proper toggle between view and edit modes
+
+### 2 · Tests First (TDD)
+- [x] Write tests for BPMN viewer initialization
+- [x] Write tests for edit mode toggle functionality
+- [x] Write tests for palette show/hide behavior
+- [x] Write tests for context pad enable/disable
+
+### 3 · Implement
+- [x] Fix global variable declarations (moved outside DOMContentLoaded)
+- [x] Make enterEditMode and exitEditMode globally accessible
+- [x] Debug and fix event listener attachment
+- [x] Ensure proper BPMN viewer initialization
+- [x] Fix toggle state management
+
+### 4 · Update Documentation
+- [x] Document BPMN editing toggle functionality
+- [x] Add troubleshooting guide for common issues
+- [x] Update technical architecture documentation
+
+### 5 · Local Validation
+- [x] Test edit mode toggle works correctly
+- [x] Verify palette shows/hides properly
+- [x] Test context pad enable/disable
+- [x] Validate smooth transitions between modes
+
+### 6 · Integration Testing
+- [x] Test toggle with generated SOPs
+- [x] Test toggle with uploaded diagrams
+- [x] Verify save/load works in both modes
+- [x] Test error handling and recovery
+
+### 7 · Finalise & Commit
+- [x] Commit toggle fix
+- [x] Mark task **DONE**
+
+---
+
 ## Implementation Priority
 1. **Task 1**: Intelligent SOP Generation ✅ **DONE**
 2. **Task 2**: Content Editing Capabilities ✅ **DONE**
 3. **Task 3**: Risk & Control Measures ✅ **DONE**
 4. **Task 4**: Description Markdown Fix + BPMN Swimlanes ✅ **DONE**
 5. **Task 5**: BPMN Diagram Editing ✅ **DONE**
+6. **Task 8**: Fix BPMN Edit Diagram Toggle Issue ✅ **DONE**
+7. **Task 6**: Architectural Review & Production Readiness 📋 **PLANNED**
+8. **Task 7**: Enterprise Architecture & Scalability 🏗️ **PLANNED**
+
+## Quick Win Roadmap (Based on Architectural Review)
+1. **Refactor scripts** into ES modules, lazy-load BPMN bundle
+2. **Add localStorage persistence** for RACM + description
+3. **Implement ARIA labels** and color-contrast fixes
+4. **Write 10-line Node/Express API stub** for future backend integration
+5. **Usability test** with MA and Compliance Officer for full workflow
 
 ## Technical Notes
 - Maintain backward compatibility with existing SOPs
 - Ensure all new features work with save/load ZIP functionality
 - Keep UI responsive and user-friendly
 - Follow existing code patterns and architecture
+- Focus on regulatory compliance and audit trail requirements
+- Plan for enterprise scalability from the beginning
