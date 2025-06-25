@@ -62,7 +62,9 @@ class IntegrationTestSuite {
 
     // Test 1: Page Load and Basic Elements
     async testPageLoad() {
-        await this.page.goto('http://localhost:3000', { waitUntil: 'networkidle' });
+        const testUrl = process.env.TEST_URL || 'https://sop-maker-production.up.railway.app/';
+        this.log(`Testing against: ${testUrl}`);
+        await this.page.goto(testUrl, { waitUntil: 'networkidle' });
         
         // Check for critical elements
         const elements = [
