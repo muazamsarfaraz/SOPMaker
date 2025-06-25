@@ -127,8 +127,33 @@ document.addEventListener('DOMContentLoaded', function() {
                  canvas.zoom('fit-viewport', 'auto');
             });
 
+            // Ensure no editing capabilities in view mode
+            try {
+                const palette = bpmnViewer.get('palette');
+                if (palette && palette._container) {
+                    palette._container.style.display = 'none';
+                    palette._container.style.visibility = 'hidden';
+                }
+            } catch (err) {
+                // Palette might not exist in viewer mode, which is expected
+                console.log('No palette in viewer mode (expected)');
+            }
+
+            // Disable context pad in view mode
+            try {
+                const contextPad = bpmnViewer.get('contextPad');
+                if (contextPad) {
+                    contextPad.close();
+                }
+            } catch (err) {
+                // Context pad might not exist in viewer mode, which is expected
+                console.log('No context pad in viewer mode (expected)');
+            }
+
             const bjsContainerPost = diagramContainer.querySelector('.bjs-container');
             if (bjsContainerPost) bjsContainerPost.style.display = 'block';
+
+            console.log('View mode active: Navigation only (zoom, pan). No editing capabilities.');
 
         } catch (err) {
             console.error('Error importing BPMN XML:', err);
@@ -201,14 +226,26 @@ document.addEventListener('DOMContentLoaded', function() {
             editDiagramBtn.classList.add('bg-gray-500', 'hover:bg-gray-600');
         }
 
-        // Load diagram in modeler
+        // Load diagram in modeler with full editing capabilities
         try {
             await bpmnModeler.importXML(currentSopData.bpmnXml);
             if (loadingMessageElement) loadingMessageElement.style.display = 'none';
-            if (uploadStatus) uploadStatus.textContent = 'Diagram ready for editing.';
 
+            // Enable all editing features
             const canvas = bpmnModeler.get('canvas');
+            const palette = bpmnModeler.get('palette');
+
+            // Ensure palette is visible and functional
+            if (palette && palette._container) {
+                palette._container.style.display = 'block';
+                palette._container.style.visibility = 'visible';
+            }
+
+            // Fit viewport and enable interactions
             canvas.zoom('fit-viewport', 'auto');
+
+            console.log('Edit mode enabled: Full BPMN editing capabilities active');
+            if (uploadStatus) uploadStatus.textContent = 'Edit mode enabled. Use the palette to add elements and click elements to modify them.';
         } catch (err) {
             console.error('Error loading diagram in modeler:', err);
             if (uploadStatus) uploadStatus.textContent = `Error loading diagram for editing: ${err.message}`;
@@ -245,19 +282,44 @@ document.addEventListener('DOMContentLoaded', function() {
             bpmnModeler = null;
         }
 
-        // Reinitialize viewer
+        // Reinitialize viewer (view-only mode)
         try {
             bpmnViewer = new window.BpmnJS({
                 container: diagramContainer
             });
 
-            // Load diagram in viewer
+            // Load diagram in viewer (no editing capabilities)
             await bpmnViewer.importXML(currentSopData.bpmnXml);
             if (loadingMessageElement) loadingMessageElement.style.display = 'none';
-            if (uploadStatus) uploadStatus.textContent = 'Diagram loaded successfully.';
+
+            // Ensure no palette or editing capabilities in view mode
+            try {
+                const palette = bpmnViewer.get('palette');
+                if (palette && palette._container) {
+                    palette._container.style.display = 'none';
+                    palette._container.style.visibility = 'hidden';
+                }
+            } catch (err) {
+                // Palette might not exist in viewer mode, which is expected
+                console.log('No palette in viewer mode (expected)');
+            }
+
+            // Disable context pad in view mode
+            try {
+                const contextPad = bpmnViewer.get('contextPad');
+                if (contextPad) {
+                    contextPad.close();
+                }
+            } catch (err) {
+                // Context pad might not exist in viewer mode, which is expected
+                console.log('No context pad in viewer mode (expected)');
+            }
 
             const canvas = bpmnViewer.get('canvas');
             canvas.zoom('fit-viewport', 'auto');
+
+            console.log('View mode enabled: Navigation only (zoom, pan). No editing capabilities.');
+            if (uploadStatus) uploadStatus.textContent = 'View mode enabled. Click "Edit Diagram" to modify the diagram.';
         } catch (err) {
             console.error('Error loading diagram in viewer:', err);
             if (uploadStatus) uploadStatus.textContent = `Error loading diagram: ${err.message}`;
