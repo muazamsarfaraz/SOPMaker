@@ -157,11 +157,13 @@ Respond in JSON format:
   try {
     let content = completion.choices[0].message.content;
 
-    // Remove markdown code blocks if present
-    if (content.includes('```json')) {
-      content = content.replace(/```json\s*/g, '').replace(/```\s*$/g, '');
-    } else if (content.includes('```')) {
-      content = content.replace(/```\s*/g, '');
+    // Remove markdown code blocks if present - more robust approach
+    content = content.replace(/```json\s*/gi, '').replace(/```\s*$/gm, '').replace(/```/g, '');
+
+    // Find JSON content between braces
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      content = jsonMatch[0];
     }
 
     const response = JSON.parse(content.trim());
