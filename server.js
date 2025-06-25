@@ -158,14 +158,6 @@ Respond in JSON format:
   }
 }
 
-// Serve static files from the current directory
-app.use(express.static(__dirname));
-
-// Handle SPA routing - serve index.html for all routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
 // Debug endpoint to check environment variables (remove in production)
 app.get('/api/debug/env', (req, res) => {
   res.json({
@@ -174,6 +166,14 @@ app.get('/api/debug/env', (req, res) => {
     keyPrefix: process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 10) + '...' : 'Not set',
     openaiInitialized: !!openai
   });
+});
+
+// Serve static files from the current directory
+app.use(express.static(__dirname));
+
+// Handle SPA routing - serve index.html for all routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, () => {
