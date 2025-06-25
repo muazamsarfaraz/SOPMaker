@@ -489,37 +489,37 @@ When user changes description to completely different process (e.g., "make a pos
 - [x] Plan force replacement strategy for different process types
 
 ### 2 · Tests First (TDD)
-- [ ] Write tests for process type detection (tea vs payment vs manufacturing)
-- [ ] Write tests for complete RACM replacement logic
-- [ ] Write tests for process step name updates
-- [ ] Write tests for preview modal showing correct replacement message
+- [x] Write tests for process type detection (tea vs payment vs manufacturing)
+- [x] Write tests for complete RACM replacement logic
+- [x] Write tests for process step name updates
+- [x] Write tests for preview modal showing correct replacement message
 
 ### 3 · Implement
-- [ ] Fix process detection logic to force complete replacement
-- [ ] Ensure process step names are properly updated
-- [ ] Update preview modal to show correct replacement vs update message
-- [ ] Test with multiple different process types (tea, manufacturing, service)
+- [x] Fix process detection logic to force complete replacement
+- [x] Ensure process step names are properly updated
+- [x] Update preview modal to show correct replacement vs update message
+- [x] Test with multiple different process types (tea, manufacturing, service)
 
 ### 4 · Update Documentation
-- [ ] Document process replacement logic
-- [ ] Add examples of different process types
-- [ ] Update troubleshooting guide
+- [x] Document process replacement logic
+- [x] Add examples of different process types
+- [x] Update troubleshooting guide
 
 ### 5 · Local Validation
-- [ ] Test tea making process replacement
-- [ ] Test manufacturing process replacement
-- [ ] Test service process replacement
-- [ ] Verify process steps are correctly displayed
+- [x] Test tea making process replacement
+- [x] Test manufacturing process replacement
+- [x] Test service process replacement
+- [x] Verify process steps are correctly displayed
 
 ### 6 · Integration Testing
-- [ ] Test on Railway deployment
-- [ ] Test with GPT-4o-mini integration
-- [ ] Verify all sync types work correctly
-- [ ] Test edge cases and error handling
+- [x] Test on Railway deployment
+- [x] Test with GPT-4o-mini integration
+- [x] Verify all sync types work correctly
+- [x] Test edge cases and error handling
 
 ### 7 · Finalise & Commit
-- [ ] Commit RACM process replacement fix
-- [ ] Mark task **DONE**
+- [x] Commit RACM process replacement fix
+- [x] Mark task **DONE**
 
 ---
 
@@ -531,7 +531,7 @@ When user changes description to completely different process (e.g., "make a pos
 5. **Task 5**: BPMN Diagram Editing ✅ **DONE**
 6. **Task 8**: Fix BPMN Edit Diagram Toggle Issue ✅ **DONE**
 7. **Task 9**: AI-Powered Section Synchronization System ✅ **DONE** (OpenAI GPT-4o-mini Integrated)
-8. **Task 10**: Fix RACM Process Replacement for Different SOPs 🔧 **IN PROGRESS**
+8. **Task 10**: Fix RACM Process Replacement for Different SOPs ✅ **DONE**
 9. **Task 6**: Architectural Review & Production Readiness 📋 **PLANNED**
 10. **Task 7**: Enterprise Architecture & Scalability 🏗️ **PLANNED**
 
