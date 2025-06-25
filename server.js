@@ -87,18 +87,20 @@ Respond in JSON format:
   ]
 }`,
 
-    description: `You are an expert business process analyst. A process description has been updated. Based on the new description, suggest updates to the BPMN diagram and enhancements to the RACM.
+    description: `You are an expert business process analyst. A process description has been updated. Based on the new description, suggest enhancements to the description itself, updates to the BPMN diagram, and improvements to the RACM.
 
 Current Description: ${description || 'Not provided'}
 Current BPMN: ${bpmnXml ? 'BPMN diagram exists' : 'No BPMN provided'}
 Current RACM entries: ${JSON.stringify(racmData || [], null, 2)}
 
 Please provide:
-1. Suggestions for BPMN diagram updates (describe what should be added/changed)
-2. Updates to existing RACM entries with improved Key Risk, Key Control, Frequency, Evidence, and Risk Level
+1. Enhanced description content that builds upon the existing description with additional insights and improvements
+2. Suggestions for BPMN diagram updates (describe what should be added/changed)
+3. Updates to existing RACM entries with improved Key Risk, Key Control, Frequency, Evidence, and Risk Level
 
 Respond in JSON format:
 {
+  "descriptionEnhancement": "Additional content to enhance the existing description with new insights and improvements...",
   "bpmnSuggestions": "Describe what should be updated in the BPMN diagram...",
   "racmUpdates": [
     {
