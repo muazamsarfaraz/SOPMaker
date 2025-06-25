@@ -87,29 +87,36 @@ Respond in JSON format:
   ]
 }`,
 
-    description: `You are an expert business process analyst. A process description has been updated. Based on the new description, suggest enhancements to the description itself, updates to the BPMN diagram, and improvements to the RACM.
+    description: `You are an expert business process analyst. A process description has been updated.
 
 Current Description: ${description || 'Not provided'}
 Current BPMN: ${bpmnXml ? 'BPMN diagram exists' : 'No BPMN provided'}
 Current RACM entries: ${JSON.stringify(racmData || [], null, 2)}
 
+CRITICAL ANALYSIS: Look at the current description. If it describes a completely different process than what's in the current RACM entries, you MUST provide completely new RACM entries that match the new process.
+
+For example:
+- If current RACM shows "payment processing" but description is about "tea making", provide tea-making RACM entries
+- If current RACM shows "accounts system" but description is about "manufacturing", provide manufacturing RACM entries
+
 Please provide:
 1. Enhanced description content that builds upon the existing description with additional insights and improvements
-2. Suggestions for BPMN diagram updates (describe what should be added/changed)
-3. Updates to existing RACM entries with improved Key Risk, Key Control, Frequency, Evidence, and Risk Level
+2. Comprehensive BPMN diagram suggestions that reflect the current process described
+3. RACM entries that match the process described in the current description (not the old RACM entries)
 
 Respond in JSON format:
 {
   "descriptionEnhancement": "Additional content to enhance the existing description with new insights and improvements...",
-  "bpmnSuggestions": "Describe what should be updated in the BPMN diagram...",
+  "bpmnSuggestions": "Comprehensive description of what the BPMN diagram should show for this process, including all major steps, decision points, and flow...",
   "racmUpdates": [
     {
-      "stepNumber": "existing step number to update",
-      "keyRisk": "Updated key risk description",
-      "keyControl": "Updated key control description",
-      "frequency": "Updated frequency",
-      "evidence": "Updated evidence/audit test",
-      "riskLevel": "Updated risk level (Low/Medium/High)"
+      "stepNumber": "step number (1, 2, 3, etc.)",
+      "processStep": "Name of the actual process step from the current description",
+      "keyRisk": "Key risk for this specific process step",
+      "keyControl": "Key control for this specific process step",
+      "frequency": "Control frequency",
+      "evidence": "Evidence/audit test",
+      "riskLevel": "Risk level (Low/Medium/High)"
     }
   ]
 }`,
@@ -148,10 +155,20 @@ Respond in JSON format:
   });
 
   try {
-    const response = JSON.parse(completion.choices[0].message.content);
+    let content = completion.choices[0].message.content;
+
+    // Remove markdown code blocks if present
+    if (content.includes('```json')) {
+      content = content.replace(/```json\s*/g, '').replace(/```\s*$/g, '');
+    } else if (content.includes('```')) {
+      content = content.replace(/```\s*/g, '');
+    }
+
+    const response = JSON.parse(content.trim());
     return response;
   } catch (parseError) {
     console.error('Error parsing OpenAI response:', parseError);
+    console.error('Raw content:', completion.choices[0].message.content);
     // Fallback to a structured response
     return {
       error: 'Failed to parse AI response',

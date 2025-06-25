@@ -2533,7 +2533,24 @@ function displaySyncPreview(changedSection, syncResult) {
                     ${section === 'racmData' ?
                         `Will add ${syncResult[section].length} new RACM entries` :
                         section === 'racmUpdates' ?
-                        `Will update ${syncResult[section].length} existing RACM entries with improved Key Risk, Key Control, Frequency, Evidence, and Risk Level` :
+                        (() => {
+                            const currentDesc = currentSopData.descriptionMd || '';
+                            const isCompletelyDifferentProcess =
+                                (currentDesc.toLowerCase().includes('tea') && !racmData.some(entry => entry.processStep.toLowerCase().includes('tea'))) ||
+                                (currentDesc.toLowerCase().includes('manufacturing') && !racmData.some(entry => entry.processStep.toLowerCase().includes('manufactur'))) ||
+                                (currentDesc.toLowerCase().includes('cooking') && !racmData.some(entry => entry.processStep.toLowerCase().includes('cook'))) ||
+                                (currentDesc.toLowerCase().includes('service') && currentDesc.toLowerCase().includes('customer') && !racmData.some(entry => entry.processStep.toLowerCase().includes('service')));
+
+                            const processStepsMatch = syncResult[section].some(update =>
+                                racmData.some(entry =>
+                                    entry.processStep && update.processStep &&
+                                    entry.processStep.toLowerCase().includes(update.processStep.toLowerCase().split(' ')[0])
+                                )
+                            );
+                            return (!isCompletelyDifferentProcess && processStepsMatch) ?
+                                `Will update ${syncResult[section].length} existing RACM entries with improved Key Risk, Key Control, Frequency, Evidence, and Risk Level` :
+                                `Will replace entire RACM matrix with ${syncResult[section].length} new entries for the updated process`;
+                        })() :
                         section === 'bpmnSuggestions' ?
                         `BPMN Suggestions: ${syncResult[section].substring(0, 200)}...` :
                         section === 'descriptionEnhancement' ?
@@ -2615,22 +2632,69 @@ async function applySyncChanges() {
         }
 
         if (syncResult.racmUpdates && Array.isArray(syncResult.racmUpdates)) {
-            // Update existing RACM entries
-            syncResult.racmUpdates.forEach(update => {
-                const existingEntryIndex = racmData.findIndex(entry =>
-                    entry.stepNumber === update.stepNumber
-                );
+            // Check if the current description contains keywords that indicate a completely different process
+            const currentDesc = currentSopData.descriptionMd || '';
+            const isCompletelyDifferentProcess =
+                (currentDesc.toLowerCase().includes('tea') && !racmData.some(entry => entry.processStep.toLowerCase().includes('tea'))) ||
+                (currentDesc.toLowerCase().includes('manufacturing') && !racmData.some(entry => entry.processStep.toLowerCase().includes('manufactur'))) ||
+                (currentDesc.toLowerCase().includes('cooking') && !racmData.some(entry => entry.processStep.toLowerCase().includes('cook'))) ||
+                (currentDesc.toLowerCase().includes('service') && currentDesc.toLowerCase().includes('customer') && !racmData.some(entry => entry.processStep.toLowerCase().includes('service')));
 
-                if (existingEntryIndex !== -1) {
-                    // Update existing entry
-                    const existingEntry = racmData[existingEntryIndex];
-                    if (update.keyRisk) existingEntry.riskDescription = update.keyRisk;
-                    if (update.keyControl) existingEntry.controlDescription = update.keyControl;
-                    if (update.frequency) existingEntry.controlFrequency = update.frequency;
-                    if (update.evidence) existingEntry.evidenceAuditTest = update.evidence;
-                    if (update.riskLevel) existingEntry.riskLevel = update.riskLevel;
-                }
-            });
+            // Also check if the process steps are completely different (indicating a new process)
+            const processStepsMatch = syncResult.racmUpdates.some(update =>
+                racmData.some(entry =>
+                    entry.processStep && update.processStep &&
+                    entry.processStep.toLowerCase().includes(update.processStep.toLowerCase().split(' ')[0])
+                )
+            );
+
+            if (!isCompletelyDifferentProcess && processStepsMatch) {
+                // Update existing RACM entries (same process)
+                syncResult.racmUpdates.forEach(update => {
+                    const existingEntryIndex = racmData.findIndex(entry =>
+                        entry.stepNumber === update.stepNumber
+                    );
+
+                    if (existingEntryIndex !== -1) {
+                        // Update existing entry
+                        const existingEntry = racmData[existingEntryIndex];
+                        if (update.processStep) existingEntry.processStep = update.processStep;
+                        if (update.keyRisk) existingEntry.riskDescription = update.keyRisk;
+                        if (update.keyControl) existingEntry.controlDescription = update.keyControl;
+                        if (update.frequency) existingEntry.controlFrequency = update.frequency;
+                        if (update.evidence) existingEntry.evidenceAuditTest = update.evidence;
+                        if (update.riskLevel) existingEntry.riskLevel = update.riskLevel;
+                    } else {
+                        // Add new entry if stepNumber doesn't exist
+                        racmData.push({
+                            stepNumber: update.stepNumber,
+                            processStep: update.processStep || `Process Step ${update.stepNumber}`,
+                            riskDescription: update.keyRisk,
+                            controlDescription: update.keyControl,
+                            controlOwner: 'Process Owner',
+                            controlFrequency: update.frequency,
+                            controlType: 'Preventive',
+                            evidenceAuditTest: update.evidence,
+                            cosoComponent: 'Control Activities',
+                            riskLevel: update.riskLevel
+                        });
+                    }
+                });
+            } else {
+                // Replace entire RACM table (different process)
+                racmData = syncResult.racmUpdates.map(update => ({
+                    stepNumber: update.stepNumber,
+                    processStep: update.processStep || `Process Step ${update.stepNumber}`,
+                    riskDescription: update.keyRisk,
+                    controlDescription: update.keyControl,
+                    controlOwner: 'Process Owner',
+                    controlFrequency: update.frequency,
+                    controlType: 'Preventive',
+                    evidenceAuditTest: update.evidence,
+                    cosoComponent: 'Control Activities',
+                    riskLevel: update.riskLevel
+                }));
+            }
             renderRacmTable();
         }
 
