@@ -456,6 +456,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 controlsContainer.innerHTML = parseMarkdownToHtml(currentSopData.controlsMd);
             }
 
+            // Update RACM data
+            if (currentSopData.racmData && Array.isArray(currentSopData.racmData)) {
+                racmData = [...currentSopData.racmData];
+                renderRacmTable();
+            }
+
             if (sopGeneratorStatus) sopGeneratorStatus.textContent = 'SOP generated and displayed successfully!';
             await new Promise(resolve => setTimeout(resolve, 1500));
             closeSopModal();
@@ -1006,6 +1012,165 @@ document.addEventListener('DOMContentLoaded', function() {
 </bpmn:definitions>`;
     }
 
+    function generateRacmData(processType) {
+        const racmTemplates = {
+            'refund': [
+                {
+                    stepNumber: '1',
+                    processStep: 'Receive refund request from customer',
+                    keyRisk: 'Fraudulent or invalid refund requests',
+                    keyControl: 'Automated validation of purchase history and refund eligibility criteria',
+                    controlOwner: 'Customer Service System',
+                    frequency: 'Continuous',
+                    controlType: 'Automated',
+                    evidence: 'System validation logs and rejection reports',
+                    riskLevel: 'High'
+                },
+                {
+                    stepNumber: '2',
+                    processStep: 'Review and approve refund request',
+                    keyRisk: 'Unauthorized approval of high-value refunds',
+                    keyControl: 'Multi-level approval workflow for refunds above $500 threshold',
+                    controlOwner: 'Finance Manager',
+                    frequency: 'Per incident',
+                    controlType: 'Preventive',
+                    evidence: 'Approval audit trail with digital signatures and timestamps',
+                    riskLevel: 'High'
+                },
+                {
+                    stepNumber: '3',
+                    processStep: 'Process refund payment',
+                    keyRisk: 'Payment processing errors or delays',
+                    keyControl: 'Automated payment processing with SLA monitoring and exception alerts',
+                    controlOwner: 'Payment Operations',
+                    frequency: 'Daily',
+                    controlType: 'Detective',
+                    evidence: 'Payment processing reports and SLA compliance metrics',
+                    riskLevel: 'Medium'
+                },
+                {
+                    stepNumber: '4',
+                    processStep: 'Notify customer of refund completion',
+                    keyRisk: 'Customer not informed of refund status',
+                    keyControl: 'Automated email notification with delivery confirmation',
+                    controlOwner: 'Customer Service System',
+                    frequency: 'Per incident',
+                    controlType: 'Detective',
+                    evidence: 'Email delivery logs and customer acknowledgment records',
+                    riskLevel: 'Low'
+                }
+            ],
+            'onboarding': [
+                {
+                    stepNumber: '1',
+                    processStep: 'Create employee profile and documentation',
+                    keyRisk: 'Incomplete or inaccurate employee information',
+                    keyControl: 'Mandatory field validation and document verification checklist',
+                    controlOwner: 'HR Administrator',
+                    frequency: 'Per incident',
+                    controlType: 'Preventive',
+                    evidence: 'Completed onboarding forms with verification signatures',
+                    riskLevel: 'Medium'
+                },
+                {
+                    stepNumber: '2',
+                    processStep: 'Provision system access and accounts',
+                    keyRisk: 'Excessive or inappropriate access rights granted',
+                    keyControl: 'Role-based access provisioning using pre-approved templates',
+                    controlOwner: 'IT Security',
+                    frequency: 'Per incident',
+                    controlType: 'Preventive',
+                    evidence: 'Access provisioning logs and role assignment records',
+                    riskLevel: 'High'
+                },
+                {
+                    stepNumber: '3',
+                    processStep: 'Complete mandatory training programs',
+                    keyRisk: 'Employee starts work without required training',
+                    keyControl: 'Training completion tracking with system access restrictions until complete',
+                    controlOwner: 'Learning & Development',
+                    frequency: 'Per incident',
+                    controlType: 'Preventive',
+                    evidence: 'Training completion certificates and system access logs',
+                    riskLevel: 'High'
+                },
+                {
+                    stepNumber: '4',
+                    processStep: 'Manager sign-off and orientation completion',
+                    keyRisk: 'Employee not properly oriented to role and responsibilities',
+                    keyControl: 'Mandatory manager sign-off on orientation checklist',
+                    controlOwner: 'Direct Manager',
+                    frequency: 'Per incident',
+                    controlType: 'Detective',
+                    evidence: 'Signed orientation checklist and manager confirmation',
+                    riskLevel: 'Medium'
+                }
+            ],
+            'approval': [
+                {
+                    riskId: 'R001',
+                    riskDesc: 'Unauthorized approvals exceeding authority limits',
+                    riskCategory: 'Financial',
+                    impact: 'High',
+                    likelihood: 'Medium',
+                    inherentRisk: 'High',
+                    controlId: 'C001',
+                    controlDesc: 'System-enforced approval limits and escalation rules',
+                    controlType: 'Preventive',
+                    controlOwner: 'Finance Director',
+                    testingFreq: 'Monthly',
+                    residualRisk: 'Low'
+                },
+                {
+                    riskId: 'R002',
+                    riskDesc: 'Approval delays impacting business operations',
+                    riskCategory: 'Operational',
+                    impact: 'Medium',
+                    likelihood: 'High',
+                    inherentRisk: 'High',
+                    controlId: 'C002',
+                    controlDesc: 'Automated escalation and SLA monitoring',
+                    controlType: 'Detective',
+                    controlOwner: 'Process Owner',
+                    testingFreq: 'Weekly',
+                    residualRisk: 'Medium'
+                }
+            ],
+            'generic': [
+                {
+                    riskId: 'R001',
+                    riskDesc: 'Process execution errors due to unclear procedures',
+                    riskCategory: 'Operational',
+                    impact: 'Medium',
+                    likelihood: 'Medium',
+                    inherentRisk: 'Medium',
+                    controlId: 'C001',
+                    controlDesc: 'Standardized procedures and regular training',
+                    controlType: 'Preventive',
+                    controlOwner: 'Process Owner',
+                    testingFreq: 'Quarterly',
+                    residualRisk: 'Low'
+                },
+                {
+                    riskId: 'R002',
+                    riskDesc: 'Non-compliance with regulatory requirements',
+                    riskCategory: 'Compliance',
+                    impact: 'High',
+                    likelihood: 'Low',
+                    inherentRisk: 'Medium',
+                    controlId: 'C002',
+                    controlDesc: 'Regular compliance monitoring and audits',
+                    controlType: 'Detective',
+                    controlOwner: 'Compliance Team',
+                    testingFreq: 'Quarterly',
+                    residualRisk: 'Low'
+                }
+            ]
+        };
+
+        return racmTemplates[processType] || racmTemplates['generic'];
+    }
+
     async function generatePlaceholderSopData(userInput, statusElement, spinnerElement) {
         const updateStatus = (text) => {
             if (statusElement) statusElement.textContent = text;
@@ -1053,6 +1218,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         updateStatus('Generation complete!');
 
+        // Generate RACM data
+        updateStatus('Generating Risk and Control Matrix...');
+        await new Promise(resolve => setTimeout(resolve, 300));
+        const racmData = generateRacmData(processType);
+
         return {
             title: dynamicTitle,
             bpmnXml: bpmnXml,
@@ -1060,6 +1230,7 @@ document.addEventListener('DOMContentLoaded', function() {
             stepsMd: stepsMd,
             risksMd: risksMd,
             controlsMd: controlsMd,
+            racmData: racmData,
             footerData: footerData
         };
     }
@@ -1737,7 +1908,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const folderName = cleanTitle; // User will extract this folder
 
         // Ensure all data is available (it should be in currentSopData)
-        const { title, subtitle, bpmnXml, descriptionMd, stepsMd, risksMd, controlsMd, footerData } = currentSopData;
+        const { title, subtitle, bpmnXml, descriptionMd, stepsMd, risksMd, controlsMd, racmData, footerData } = currentSopData;
 
         if (!bpmnXml || !descriptionMd || !stepsMd || !footerData) {
             alert("Error: SOP data is incomplete. Cannot save.");
@@ -1752,6 +1923,7 @@ document.addEventListener('DOMContentLoaded', function() {
         zip.folder(folderName).file("procedure_steps.md", stepsMd);
         if (risksMd) zip.folder(folderName).file("risks_mitigation.md", risksMd);
         if (controlsMd) zip.folder(folderName).file("control_measures.md", controlsMd);
+        if (racmData) zip.folder(folderName).file("racm_data.json", JSON.stringify(racmData, null, 2));
         zip.folder(folderName).file("metadata.json", JSON.stringify(metadata, null, 2));
 
         try {
@@ -1785,7 +1957,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (uploadStatus) uploadStatus.textContent = "Loading SOP from folder...";
 
-        let diagramFile, descriptionFile, stepsFile, risksFile, controlsFile, metadataFile;
+        let diagramFile, descriptionFile, stepsFile, risksFile, controlsFile, racmFile, metadataFile;
         const folderName = files[0].webkitRelativePath.split('/')[0]; // Get the top-level folder name
 
         for (const file of files) {
@@ -1798,6 +1970,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (fileNameInFolder === 'procedure_steps.md') stepsFile = file;
                 else if (fileNameInFolder === 'risks_mitigation.md') risksFile = file;
                 else if (fileNameInFolder === 'control_measures.md') controlsFile = file;
+                else if (fileNameInFolder === 'racm_data.json') racmFile = file;
                 else if (fileNameInFolder === 'metadata.json') metadataFile = file;
             }
         }
@@ -1823,6 +1996,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const stepsMd = await readFileAsText(stepsFile);
             const risksMd = risksFile ? await readFileAsText(risksFile) : '';
             const controlsMd = controlsFile ? await readFileAsText(controlsFile) : '';
+            const racmJson = racmFile ? await readFileAsText(racmFile) : null;
+            const racmData = racmJson ? JSON.parse(racmJson) : [];
             const metadataJson = await readFileAsText(metadataFile);
             const metadata = JSON.parse(metadataJson);
 
@@ -1835,6 +2010,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 stepsMd,
                 risksMd,
                 controlsMd,
+                racmData,
                 footerData: metadata.footerData
             };
 
@@ -1860,6 +2036,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const controlsContainer = document.getElementById('controlsContainer');
             if (controlsContainer && currentSopData.controlsMd) {
                 controlsContainer.innerHTML = parseMarkdownToHtml(currentSopData.controlsMd);
+            }
+
+            // Update RACM data
+            if (currentSopData.racmData && Array.isArray(currentSopData.racmData)) {
+                racmData = [...currentSopData.racmData];
+                renderRacmTable();
             }
 
             if (uploadStatus) uploadStatus.textContent = `SOP "${currentSopData.title}" loaded successfully.`;
@@ -1903,4 +2085,267 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize editing features
     initializeEditingFeatures();
+
+    // Initialize RACM functionality
+    initializeRACM();
 });
+
+// RACM (Risk and Control Matrix) functionality
+let racmData = [];
+let editingRacmIndex = -1;
+
+function initializeRACM() {
+    const editRacmBtn = document.getElementById('editRacmBtn');
+    const addRacmRowBtn = document.getElementById('addRacmRowBtn');
+    const saveRacmEdit = document.getElementById('saveRacmEdit');
+    const cancelRacmEdit = document.getElementById('cancelRacmEdit');
+
+    if (editRacmBtn) editRacmBtn.addEventListener('click', toggleRacmEditMode);
+    if (addRacmRowBtn) addRacmRowBtn.addEventListener('click', addNewRacmRow);
+    if (saveRacmEdit) saveRacmEdit.addEventListener('click', saveRacmEntry);
+    if (cancelRacmEdit) cancelRacmEdit.addEventListener('click', cancelRacmEdit);
+
+    // Load initial RACM data
+    loadInitialRacmData();
+}
+
+function loadInitialRacmData() {
+    // Default step-based RACM data for demonstration
+    racmData = [
+        {
+            stepNumber: '1',
+            processStep: 'Receive and validate request',
+            keyRisk: 'Invalid or incomplete request data',
+            keyControl: 'Automated validation checks and mandatory field verification',
+            controlOwner: 'System Administrator',
+            frequency: 'Continuous',
+            controlType: 'Automated',
+            evidence: 'System logs showing validation results and error messages',
+            riskLevel: 'Medium'
+        },
+        {
+            stepNumber: '2',
+            processStep: 'Review and approve request',
+            keyRisk: 'Unauthorized approval or approval delays',
+            keyControl: 'Role-based approval workflow with escalation timers',
+            controlOwner: 'Department Manager',
+            frequency: 'Per incident',
+            controlType: 'Preventive',
+            evidence: 'Approval audit trail with timestamps and user IDs',
+            riskLevel: 'High'
+        },
+        {
+            stepNumber: '3',
+            processStep: 'Execute process action',
+            keyRisk: 'Process execution errors or failures',
+            keyControl: 'Standardized procedures with quality checkpoints',
+            controlOwner: 'Process Operator',
+            frequency: 'Per incident',
+            controlType: 'Detective',
+            evidence: 'Process execution logs and quality check records',
+            riskLevel: 'Medium'
+        }
+    ];
+
+    renderRacmTable();
+}
+
+function renderRacmTable() {
+    const tableBody = document.getElementById('racmTableBody');
+    if (!tableBody) return;
+
+    if (racmData.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="13" class="border border-slate-300 px-3 py-4 text-center text-slate-500">No RACM entries found. Click "Add Row" to create the first entry.</td></tr>';
+        return;
+    }
+
+    tableBody.innerHTML = racmData.map((entry, index) => `
+        <tr class="hover:bg-slate-50">
+            <td class="border border-slate-300 px-3 py-2 text-center font-medium">${entry.stepNumber}</td>
+            <td class="border border-slate-300 px-3 py-2">${entry.processStep}</td>
+            <td class="border border-slate-300 px-3 py-2">${entry.keyRisk}</td>
+            <td class="border border-slate-300 px-3 py-2">${entry.keyControl}</td>
+            <td class="border border-slate-300 px-3 py-2">${entry.controlOwner}</td>
+            <td class="border border-slate-300 px-3 py-2">${entry.frequency}</td>
+            <td class="border border-slate-300 px-3 py-2">
+                <span class="px-2 py-1 rounded text-xs font-medium ${getControlTypeBadgeClass(entry.controlType)}">${entry.controlType}</span>
+            </td>
+            <td class="border border-slate-300 px-3 py-2">${entry.evidence}</td>
+            <td class="border border-slate-300 px-3 py-2">
+                <span class="px-2 py-1 rounded text-xs font-medium ${getRiskBadgeClass(entry.riskLevel)}">${entry.riskLevel}</span>
+            </td>
+            <td class="border border-slate-300 px-3 py-2">
+                <div class="flex space-x-1">
+                    <button onclick="editRacmEntry(${index})" class="text-blue-600 hover:text-blue-800 text-xs" title="Edit">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                    </button>
+                    <button onclick="deleteRacmEntry(${index})" class="text-red-600 hover:text-red-800 text-xs" title="Delete">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function getRiskBadgeClass(level) {
+    switch (level?.toLowerCase()) {
+        case 'high': return 'bg-red-100 text-red-800';
+        case 'medium': return 'bg-yellow-100 text-yellow-800';
+        case 'low': return 'bg-green-100 text-green-800';
+        default: return 'bg-slate-100 text-slate-800';
+    }
+}
+
+function getControlTypeBadgeClass(type) {
+    switch (type?.toLowerCase()) {
+        case 'preventive': return 'bg-blue-100 text-blue-800';
+        case 'detective': return 'bg-purple-100 text-purple-800';
+        case 'corrective': return 'bg-orange-100 text-orange-800';
+        default: return 'bg-slate-100 text-slate-800';
+    }
+}
+
+function toggleRacmEditMode() {
+    const racmEditor = document.getElementById('racmEditor');
+    const editBtn = document.getElementById('editRacmBtn');
+
+    if (racmEditor && editBtn) {
+        const isHidden = racmEditor.classList.contains('hidden');
+        if (isHidden) {
+            racmEditor.classList.remove('hidden');
+            editBtn.textContent = 'Cancel Edit';
+        } else {
+            racmEditor.classList.add('hidden');
+            editBtn.innerHTML = `
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                Edit Matrix
+            `;
+            clearRacmForm();
+        }
+    }
+}
+
+function addNewRacmRow() {
+    editingRacmIndex = -1;
+    clearRacmForm();
+    const racmEditor = document.getElementById('racmEditor');
+    if (racmEditor) {
+        racmEditor.classList.remove('hidden');
+    }
+}
+
+function editRacmEntry(index) {
+    editingRacmIndex = index;
+    const entry = racmData[index];
+
+    // Populate form fields
+    document.getElementById('racmStepNumber').value = entry.stepNumber || '';
+    document.getElementById('racmProcessStep').value = entry.processStep || '';
+    document.getElementById('racmKeyRisk').value = entry.keyRisk || '';
+    document.getElementById('racmKeyControl').value = entry.keyControl || '';
+    document.getElementById('racmControlOwner').value = entry.controlOwner || '';
+    document.getElementById('racmFrequency').value = entry.frequency || '';
+    document.getElementById('racmControlType').value = entry.controlType || '';
+    document.getElementById('racmEvidence').value = entry.evidence || '';
+    document.getElementById('racmRiskLevel').value = entry.riskLevel || '';
+
+    const racmEditor = document.getElementById('racmEditor');
+    if (racmEditor) {
+        racmEditor.classList.remove('hidden');
+    }
+}
+
+function deleteRacmEntry(index) {
+    if (confirm('Are you sure you want to delete this RACM entry?')) {
+        racmData.splice(index, 1);
+        renderRacmTable();
+    }
+}
+
+function saveRacmEntry() {
+    const entry = {
+        stepNumber: document.getElementById('racmStepNumber').value,
+        processStep: document.getElementById('racmProcessStep').value,
+        keyRisk: document.getElementById('racmKeyRisk').value,
+        keyControl: document.getElementById('racmKeyControl').value,
+        controlOwner: document.getElementById('racmControlOwner').value,
+        frequency: document.getElementById('racmFrequency').value,
+        controlType: document.getElementById('racmControlType').value,
+        evidence: document.getElementById('racmEvidence').value,
+        riskLevel: document.getElementById('racmRiskLevel').value
+    };
+
+    if (!entry.stepNumber || !entry.processStep || !entry.keyRisk) {
+        alert('Please fill in at least Step Number, Process Step, and Key Risk');
+        return;
+    }
+
+    if (editingRacmIndex >= 0) {
+        racmData[editingRacmIndex] = entry;
+    } else {
+        racmData.push(entry);
+    }
+
+    renderRacmTable();
+    clearRacmForm();
+
+    const racmEditor = document.getElementById('racmEditor');
+    if (racmEditor) {
+        racmEditor.classList.add('hidden');
+    }
+}
+
+function cancelRacmEdit() {
+    clearRacmForm();
+    const racmEditor = document.getElementById('racmEditor');
+    if (racmEditor) {
+        racmEditor.classList.add('hidden');
+    }
+}
+
+function clearRacmForm() {
+    const fields = ['racmStepNumber', 'racmProcessStep', 'racmKeyRisk', 'racmKeyControl',
+                   'racmControlOwner', 'racmFrequency', 'racmControlType', 'racmEvidence', 'racmRiskLevel'];
+
+    fields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) field.value = '';
+    });
+
+    editingRacmIndex = -1;
+}
+
+function calculateInherentRisk(impact, likelihood) {
+    const riskMatrix = {
+        'High-High': 'High',
+        'High-Medium': 'High',
+        'High-Low': 'Medium',
+        'Medium-High': 'High',
+        'Medium-Medium': 'Medium',
+        'Medium-Low': 'Low',
+        'Low-High': 'Medium',
+        'Low-Medium': 'Low',
+        'Low-Low': 'Low'
+    };
+
+    return riskMatrix[`${impact}-${likelihood}`] || 'Medium';
+}
+
+function calculateResidualRisk(impact, likelihood) {
+    // Simplified calculation - assumes controls reduce risk by one level
+    const inherent = calculateInherentRisk(impact, likelihood);
+
+    switch (inherent) {
+        case 'High': return 'Medium';
+        case 'Medium': return 'Low';
+        case 'Low': return 'Low';
+        default: return 'Medium';
+    }
+}
