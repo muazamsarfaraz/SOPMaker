@@ -440,21 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (descriptionContainer) {
                 descriptionContainer.innerHTML = parseMarkdownToHtml(currentSopData.descriptionMd);
             }
-            const stepsContainer = document.getElementById('procedureStepsContainer');
-            if (stepsContainer) {
-                stepsContainer.innerHTML = parseProcedureStepsMarkdownToHtml(currentSopData.stepsMd);
-            }
 
-            // Update risks and controls sections with markdown parsing
-            const risksContainer = document.getElementById('risksContainer');
-            if (risksContainer && currentSopData.risksMd) {
-                risksContainer.innerHTML = parseMarkdownToHtml(currentSopData.risksMd);
-            }
-
-            const controlsContainer = document.getElementById('controlsContainer');
-            if (controlsContainer && currentSopData.controlsMd) {
-                controlsContainer.innerHTML = parseMarkdownToHtml(currentSopData.controlsMd);
-            }
 
             // Update RACM data
             if (currentSopData.racmData && Array.isArray(currentSopData.racmData)) {
@@ -1533,98 +1519,16 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Procedure steps editing
-        const editStepsBtn = document.getElementById('editStepsBtn');
-        const stepsEditor = document.getElementById('stepsEditor');
-        const stepsContainer = document.getElementById('procedureStepsContainer');
-        const stepsTextarea = document.getElementById('stepsTextarea');
-        const saveStepsEdit = document.getElementById('saveStepsEdit');
-        const cancelStepsEdit = document.getElementById('cancelStepsEdit');
 
-        if (editStepsBtn) {
-            editStepsBtn.addEventListener('click', () => {
-                enterEditMode('steps', currentSopData.stepsMd || '');
-            });
-        }
-
-        if (saveStepsEdit) {
-            saveStepsEdit.addEventListener('click', () => {
-                saveEdit('steps', stepsTextarea.value);
-            });
-        }
-
-        if (cancelStepsEdit) {
-            cancelStepsEdit.addEventListener('click', () => {
-                exitEditMode('steps');
-            });
-        }
-
-        // Risks editing
-        const editRisksBtn = document.getElementById('editRisksBtn');
-        const risksEditor = document.getElementById('risksEditor');
-        const risksContainer = document.getElementById('risksContainer');
-        const risksTextarea = document.getElementById('risksTextarea');
-        const saveRisksEdit = document.getElementById('saveRisksEdit');
-        const cancelRisksEdit = document.getElementById('cancelRisksEdit');
-
-        if (editRisksBtn) {
-            editRisksBtn.addEventListener('click', () => {
-                enterEditMode('risks', currentSopData.risksMd || '');
-            });
-        }
-
-        if (saveRisksEdit) {
-            saveRisksEdit.addEventListener('click', () => {
-                saveEdit('risks', risksTextarea.value);
-            });
-        }
-
-        if (cancelRisksEdit) {
-            cancelRisksEdit.addEventListener('click', () => {
-                exitEditMode('risks');
-            });
-        }
-
-        // Controls editing
-        const editControlsBtn = document.getElementById('editControlsBtn');
-        const controlsEditor = document.getElementById('controlsEditor');
-        const controlsContainer = document.getElementById('controlsContainer');
-        const controlsTextarea = document.getElementById('controlsTextarea');
-        const saveControlsEdit = document.getElementById('saveControlsEdit');
-        const cancelControlsEdit = document.getElementById('cancelControlsEdit');
-
-        if (editControlsBtn) {
-            editControlsBtn.addEventListener('click', () => {
-                enterEditMode('controls', currentSopData.controlsMd || '');
-            });
-        }
-
-        if (saveControlsEdit) {
-            saveControlsEdit.addEventListener('click', () => {
-                saveEdit('controls', controlsTextarea.value);
-            });
-        }
-
-        if (cancelControlsEdit) {
-            cancelControlsEdit.addEventListener('click', () => {
-                exitEditMode('controls');
-            });
-        }
     }
 
     function enterEditMode(section, content) {
         const sectionMap = {
-            'description': 'description',
-            'steps': 'steps',
-            'risks': 'risks',
-            'controls': 'controls'
+            'description': 'description'
         };
 
         const containerMap = {
-            'description': 'descriptionContainer',
-            'steps': 'procedureStepsContainer',
-            'risks': 'risksContainer',
-            'controls': 'controlsContainer'
+            'description': 'descriptionContainer'
         };
 
         const mappedSection = sectionMap[section];
@@ -1644,17 +1548,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function exitEditMode(section) {
         const sectionMap = {
-            'description': 'description',
-            'steps': 'steps',
-            'risks': 'risks',
-            'controls': 'controls'
+            'description': 'description'
         };
 
         const containerMap = {
-            'description': 'descriptionContainer',
-            'steps': 'procedureStepsContainer',
-            'risks': 'risksContainer',
-            'controls': 'controlsContainer'
+            'description': 'descriptionContainer'
         };
 
         const mappedSection = sectionMap[section];
@@ -1672,10 +1570,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function saveEdit(section, content) {
         // Update the current SOP data
         const sectionMap = {
-            'description': 'descriptionMd',
-            'steps': 'stepsMd',
-            'risks': 'risksMd',
-            'controls': 'controlsMd'
+            'description': 'descriptionMd'
         };
 
         const dataKey = sectionMap[section];
@@ -1695,21 +1590,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateSectionDisplay(section, content) {
         const containerMap = {
-            'description': 'descriptionContainer',
-            'steps': 'procedureStepsContainer',
-            'risks': 'risksContainer',
-            'controls': 'controlsContainer'
+            'description': 'descriptionContainer'
         };
 
         const containerId = containerMap[section];
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        if (section === 'steps') {
-            // For procedure steps, use the existing markdown parser
-            container.innerHTML = parseProcedureStepsMarkdownToHtml(content);
-        } else if (section === 'risks' || section === 'controls' || section === 'description') {
-            // For risks, controls, and description, use enhanced markdown parser
+        if (section === 'description') {
+            // For description, use enhanced markdown parser
             container.innerHTML = parseMarkdownToHtml(content);
         } else {
             // Fallback for any other sections
@@ -2022,21 +1911,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (descriptionContainer) {
                 descriptionContainer.innerHTML = parseMarkdownToHtml(currentSopData.descriptionMd);
             }
-            const stepsContainer = document.getElementById('procedureStepsContainer');
-            if (stepsContainer) {
-                stepsContainer.innerHTML = parseProcedureStepsMarkdownToHtml(currentSopData.stepsMd);
-            }
 
-            // Update risks and controls sections with markdown parsing
-            const risksContainer = document.getElementById('risksContainer');
-            if (risksContainer && currentSopData.risksMd) {
-                risksContainer.innerHTML = parseMarkdownToHtml(currentSopData.risksMd);
-            }
-
-            const controlsContainer = document.getElementById('controlsContainer');
-            if (controlsContainer && currentSopData.controlsMd) {
-                controlsContainer.innerHTML = parseMarkdownToHtml(currentSopData.controlsMd);
-            }
 
             // Update RACM data
             if (currentSopData.racmData && Array.isArray(currentSopData.racmData)) {
