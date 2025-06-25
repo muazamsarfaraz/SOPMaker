@@ -2536,10 +2536,10 @@ function displaySyncPreview(changedSection, syncResult) {
                         (() => {
                             const currentDesc = currentSopData.descriptionMd || '';
                             const isCompletelyDifferentProcess =
-                                (currentDesc.toLowerCase().includes('tea') && !racmData.some(entry => entry.processStep.toLowerCase().includes('tea'))) ||
-                                (currentDesc.toLowerCase().includes('manufacturing') && !racmData.some(entry => entry.processStep.toLowerCase().includes('manufactur'))) ||
-                                (currentDesc.toLowerCase().includes('cooking') && !racmData.some(entry => entry.processStep.toLowerCase().includes('cook'))) ||
-                                (currentDesc.toLowerCase().includes('service') && currentDesc.toLowerCase().includes('customer') && !racmData.some(entry => entry.processStep.toLowerCase().includes('service')));
+                                (currentDesc.toLowerCase().includes('tea') && !racmData.some(entry => entry.processStep?.toLowerCase()?.includes('tea'))) ||
+                                (currentDesc.toLowerCase().includes('manufacturing') && !racmData.some(entry => entry.processStep?.toLowerCase()?.includes('manufactur'))) ||
+                                (currentDesc.toLowerCase().includes('cooking') && !racmData.some(entry => entry.processStep?.toLowerCase()?.includes('cook'))) ||
+                                (currentDesc.toLowerCase().includes('service') && currentDesc.toLowerCase().includes('customer') && !racmData.some(entry => entry.processStep?.toLowerCase()?.includes('service')));
 
                             console.log('Preview Modal Debug:', {
                                 currentDesc: currentDesc.substring(0, 50),
@@ -2635,10 +2635,10 @@ async function applySyncChanges() {
             // Simplified detection logic for completely different processes
             const currentDesc = currentSopData.descriptionMd || '';
             const isCompletelyDifferentProcess =
-                (currentDesc.toLowerCase().includes('tea') && !racmData.some(entry => entry.processStep.toLowerCase().includes('tea'))) ||
-                (currentDesc.toLowerCase().includes('manufacturing') && !racmData.some(entry => entry.processStep.toLowerCase().includes('manufactur'))) ||
-                (currentDesc.toLowerCase().includes('cooking') && !racmData.some(entry => entry.processStep.toLowerCase().includes('cook'))) ||
-                (currentDesc.toLowerCase().includes('service') && currentDesc.toLowerCase().includes('customer') && !racmData.some(entry => entry.processStep.toLowerCase().includes('service')));
+                (currentDesc.toLowerCase().includes('tea') && !racmData.some(entry => entry.processStep?.toLowerCase()?.includes('tea'))) ||
+                (currentDesc.toLowerCase().includes('manufacturing') && !racmData.some(entry => entry.processStep?.toLowerCase()?.includes('manufactur'))) ||
+                (currentDesc.toLowerCase().includes('cooking') && !racmData.some(entry => entry.processStep?.toLowerCase()?.includes('cook'))) ||
+                (currentDesc.toLowerCase().includes('service') && currentDesc.toLowerCase().includes('customer') && !racmData.some(entry => entry.processStep?.toLowerCase()?.includes('service')));
 
             console.log('RACM Update Debug:', {
                 currentDesc: currentDesc.substring(0, 100),

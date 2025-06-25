@@ -5,7 +5,11 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "python -m http.server 3001"
+    "dev": "python -m http.server 3001",
+    "test": "node run-tests.js",
+    "test:static": "node test-battery.js",
+    "test:integration": "node test-integration.js",
+    "precommit": "npm run test"
   },
   "keywords": [
     "sop",
@@ -21,6 +25,9 @@
     "express": "^4.18.2",
     "openai": "^5.7.0",
     "serve-static": "^1.15.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.40.0"
   },
   "engines": {
     "node": ">=16.0.0"
