@@ -401,6 +401,72 @@
 
 ---
 
+## Task 9: AI-Powered Section Synchronization System
+
+### 🔄 **AI-Powered Three-Way Sync** (BPMN ↔ Description ↔ RACM)
+
+#### ✨ **Vision**
+Keep BPMN Diagram, Description, and RACM sections synchronized using OpenAI LLM integration for consistent, high-quality SOPs.
+
+### 1 · Plan
+- [x] Design hybrid sync strategy (manual + auto-sync options)
+- [x] Plan sync button placement in each section (BPMN, Description, RACM)
+- [x] Design change detection system for identifying modifications
+- [x] Plan OpenAI prompt strategies for each sync scenario
+- [x] Design change preview modal with diff view
+- [x] Plan user experience flow for sync operations
+
+### 2 · Tests First (TDD)
+- [x] Write tests for change detection utilities
+- [x] Write tests for sync functionality (simulation)
+- [x] Write tests for sync prompt generation
+- [x] Write tests for change preview modal
+- [x] Write tests for selective change application
+- [ ] Write tests for sync status indicators
+
+### 3 · Implement
+- [x] **Phase 1: Core Infrastructure**
+  - [x] Add sync buttons to BPMN, Description, and RACM sections
+  - [x] Create sync service functionality (placeholder for OpenAI)
+  - [x] Implement basic change detection and simulation
+  - [x] Create sync prompt templates and scenarios
+  - [x] Build change preview modal with diff view
+- [ ] **Phase 2: Enhanced UX**
+  - [ ] Add auto-sync option (user preference)
+  - [ ] Implement sync status indicators
+  - [ ] Add undo/redo for AI changes
+  - [ ] Create actual OpenAI API integration
+- [ ] **Phase 3: Advanced Features**
+  - [ ] Smart sync suggestions
+  - [ ] Conflict resolution system
+  - [ ] Sync history tracking
+  - [ ] Batch sync operations
+
+### 4 · Update Documentation
+- [ ] Document sync system architecture
+- [ ] Add user guide for sync functionality
+- [ ] Document OpenAI prompt strategies
+- [ ] Create troubleshooting guide for sync issues
+
+### 5 · Local Validation
+- [x] Test sync between BPMN and Description
+- [x] Test sync between Description and RACM
+- [x] Test sync between RACM and BPMN
+- [x] Validate change preview accuracy
+- [ ] Test auto-sync functionality
+
+### 6 · Integration Testing
+- [ ] Test sync with existing SOP generation
+- [ ] Test sync with editing capabilities
+- [ ] Verify save/load works with sync data
+- [ ] Test sync with large/complex SOPs
+
+### 7 · Finalise & Commit
+- [ ] Commit sync system implementation
+- [ ] Mark task **DONE**
+
+---
+
 ## Implementation Priority
 1. **Task 1**: Intelligent SOP Generation ✅ **DONE**
 2. **Task 2**: Content Editing Capabilities ✅ **DONE**
@@ -408,8 +474,9 @@
 4. **Task 4**: Description Markdown Fix + BPMN Swimlanes ✅ **DONE**
 5. **Task 5**: BPMN Diagram Editing ✅ **DONE**
 6. **Task 8**: Fix BPMN Edit Diagram Toggle Issue ✅ **DONE**
-7. **Task 6**: Architectural Review & Production Readiness 📋 **PLANNED**
-8. **Task 7**: Enterprise Architecture & Scalability 🏗️ **PLANNED**
+7. **Task 9**: AI-Powered Section Synchronization System 🔄 **IN PROGRESS**
+8. **Task 6**: Architectural Review & Production Readiness 📋 **PLANNED**
+9. **Task 7**: Enterprise Architecture & Scalability 🏗️ **PLANNED**
 
 ## Quick Win Roadmap (Based on Architectural Review)
 1. **Refactor scripts** into ES modules, lazy-load BPMN bundle

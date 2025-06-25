@@ -1734,6 +1734,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return html;
     }
 
+    // Make parseMarkdownToHtml globally accessible for sync system
+    window.parseMarkdownToHtml = parseMarkdownToHtml;
+
     function showEditSuccessMessage(section) {
         // Create a temporary success message
         const message = document.createElement('div');
@@ -2038,6 +2041,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (cancelDiagramEdit) cancelDiagramEdit.addEventListener('click', window.exitEditMode);
     if (saveDiagramEdit) saveDiagramEdit.addEventListener('click', saveDiagramChanges);
 
+    // Assign event listeners for sync buttons
+    const syncBpmnBtn = document.getElementById('syncBpmnBtn');
+    const syncDescriptionBtn = document.getElementById('syncDescriptionBtn');
+    const syncRacmBtn = document.getElementById('syncRacmBtn');
+
+    if (syncBpmnBtn) syncBpmnBtn.addEventListener('click', () => handleSyncRequest('bpmn'));
+    if (syncDescriptionBtn) syncDescriptionBtn.addEventListener('click', () => handleSyncRequest('description'));
+    if (syncRacmBtn) syncRacmBtn.addEventListener('click', () => handleSyncRequest('racm'));
+
     // Assign event listeners to FAB Menu buttons
     if (mainFabToggleBtn) mainFabToggleBtn.addEventListener('click', toggleFabMenu);
     if (generateSopFabBtn) generateSopFabBtn.addEventListener('click', () => {
@@ -2315,3 +2327,257 @@ function calculateResidualRisk(impact, likelihood) {
         default: return 'Medium';
     }
 }
+
+// --- AI Sync System ---
+
+// Global variables for sync system
+let currentSyncData = null;
+let syncPreviewModal = null;
+let syncPreviewContent = null;
+let syncPreviewActions = null;
+let closeSyncPreviewModalBtn = null;
+let acceptSyncBtn = null;
+let rejectSyncBtn = null;
+
+// Initialize sync modal elements
+function initializeSyncModal() {
+    syncPreviewModal = document.getElementById('syncPreviewModal');
+    syncPreviewContent = document.getElementById('syncPreviewContent');
+    syncPreviewActions = document.getElementById('syncPreviewActions');
+    closeSyncPreviewModalBtn = document.getElementById('closeSyncPreviewModalBtn');
+    acceptSyncBtn = document.getElementById('acceptSyncBtn');
+    rejectSyncBtn = document.getElementById('rejectSyncBtn');
+
+    // Add event listeners
+    if (closeSyncPreviewModalBtn) closeSyncPreviewModalBtn.addEventListener('click', closeSyncPreviewModal);
+    if (rejectSyncBtn) rejectSyncBtn.addEventListener('click', closeSyncPreviewModal);
+    if (acceptSyncBtn) acceptSyncBtn.addEventListener('click', applySyncChanges);
+}
+
+// Make sure to call initialization after DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeSyncModal);
+} else {
+    initializeSyncModal();
+}
+
+async function handleSyncRequest(changedSection) {
+    console.log(`Sync requested for section: ${changedSection}`);
+
+    try {
+        // Show sync modal with loading state
+        showSyncPreviewModal();
+
+        // Collect current data from all sections
+        const currentData = {
+            bpmnXml: currentSopData.bpmnXml,
+            description: currentSopData.descriptionMd,
+            racmData: racmData || []
+        };
+
+        // For now, simulate the sync process (placeholder)
+        // In the future, this will call the actual OpenAI API
+        const syncResult = await simulateSyncProcess(changedSection, currentData);
+
+        // Display sync preview
+        displaySyncPreview(changedSection, syncResult);
+
+    } catch (error) {
+        console.error('Error during sync:', error);
+        showSyncError(error.message);
+    }
+}
+
+async function simulateSyncProcess(changedSection, currentData) {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Simulate sync suggestions based on changed section
+    const suggestions = {
+        bpmn: {
+            description: "Updated description to reflect the new process flow with additional validation steps and enhanced security measures.",
+            racmData: [
+                {
+                    stepNumber: "1.1",
+                    processStep: "Document Validation",
+                    riskDescription: "Invalid or incomplete documentation",
+                    controlDescription: "Automated document validation system",
+                    controlOwner: "System Administrator",
+                    controlFrequency: "Real-time",
+                    controlType: "Preventive",
+                    evidenceAuditTest: "System validation logs",
+                    cosoComponent: "Control Activities"
+                }
+            ]
+        },
+        description: {
+            bpmnXml: "<!-- Updated BPMN with new process steps based on description changes -->",
+            racmData: [
+                {
+                    stepNumber: "2.1",
+                    processStep: "Enhanced Review Process",
+                    riskDescription: "Inadequate review procedures",
+                    controlDescription: "Multi-level approval workflow",
+                    controlOwner: "Department Manager",
+                    controlFrequency: "Per transaction",
+                    controlType: "Detective",
+                    evidenceAuditTest: "Approval audit trail",
+                    cosoComponent: "Control Environment"
+                }
+            ]
+        },
+        racm: {
+            description: "Updated description to include new risk considerations and control measures based on RACM changes.",
+            bpmnXml: "<!-- Updated BPMN with control checkpoints and risk mitigation steps -->"
+        }
+    };
+
+    return suggestions[changedSection] || {};
+}
+
+function showSyncPreviewModal() {
+    if (syncPreviewModal) {
+        syncPreviewModal.classList.remove('hidden');
+        // Reset content to loading state
+        if (syncPreviewContent) {
+            syncPreviewContent.innerHTML = `
+                <div class="text-center text-slate-500">
+                    <div class="spinner inline-block mr-2"></div>
+                    Analyzing changes and generating sync suggestions...
+                </div>
+            `;
+        }
+        if (syncPreviewActions) {
+            syncPreviewActions.classList.add('hidden');
+        }
+        // Trigger animation
+        setTimeout(() => {
+            const modalContent = syncPreviewModal.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }
+        }, 10);
+    }
+}
+
+function closeSyncPreviewModal() {
+    if (syncPreviewModal) {
+        const modalContent = syncPreviewModal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.classList.add('scale-95', 'opacity-0');
+            modalContent.classList.remove('scale-100', 'opacity-100');
+        }
+        setTimeout(() => {
+            syncPreviewModal.classList.add('hidden');
+        }, 300);
+    }
+    currentSyncData = null;
+}
+
+function displaySyncPreview(changedSection, syncResult) {
+    if (!syncPreviewContent) return;
+
+    let previewHtml = `
+        <div class="mb-4">
+            <h4 class="text-lg font-semibold text-slate-700 mb-2">
+                🔄 Sync suggestions based on ${changedSection.toUpperCase()} changes:
+            </h4>
+        </div>
+    `;
+
+    // Show what will be updated
+    Object.keys(syncResult).forEach(section => {
+        const sectionName = section === 'bpmnXml' ? 'BPMN Diagram' :
+                           section === 'description' ? 'Description' :
+                           section === 'racmData' ? 'RACM Matrix' : section;
+
+        previewHtml += `
+            <div class="mb-6 p-4 border border-slate-200 rounded-md">
+                <h5 class="font-medium text-slate-700 mb-2">📝 ${sectionName} Updates:</h5>
+                <div class="bg-slate-50 p-3 rounded text-sm text-slate-600">
+                    ${section === 'racmData' ?
+                        `Will add ${syncResult[section].length} new RACM entries` :
+                        syncResult[section].substring(0, 200) + '...'
+                    }
+                </div>
+            </div>
+        `;
+    });
+
+    syncPreviewContent.innerHTML = previewHtml;
+
+    // Store sync data for application
+    currentSyncData = { changedSection, syncResult };
+
+    // Show action buttons
+    if (syncPreviewActions) {
+        syncPreviewActions.classList.remove('hidden');
+    }
+}
+
+function showSyncError(errorMessage) {
+    if (syncPreviewContent) {
+        syncPreviewContent.innerHTML = `
+            <div class="text-center text-red-600">
+                <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-lg font-medium">Sync Error</p>
+                <p class="text-sm mt-2">${errorMessage}</p>
+            </div>
+        `;
+    }
+}
+
+async function applySyncChanges() {
+    if (!currentSyncData) return;
+
+    const { changedSection, syncResult } = currentSyncData;
+
+    try {
+        // Apply changes to the appropriate sections
+        if (syncResult.description) {
+            currentSopData.descriptionMd = syncResult.description;
+            const descriptionContainer = document.getElementById('descriptionContainer');
+            if (descriptionContainer) {
+                descriptionContainer.innerHTML = parseMarkdownToHtml(syncResult.description);
+            }
+        }
+
+        if (syncResult.bpmnXml) {
+            currentSopData.bpmnXml = syncResult.bpmnXml;
+            openDiagram(syncResult.bpmnXml);
+        }
+
+        if (syncResult.racmData && Array.isArray(syncResult.racmData)) {
+            // Add new RACM entries
+            racmData = [...(racmData || []), ...syncResult.racmData];
+            renderRacmTable();
+        }
+
+        // Close modal and show success message
+        closeSyncPreviewModal();
+
+        // Show success notification
+        const uploadStatus = document.getElementById('uploadStatus');
+        if (uploadStatus) {
+            uploadStatus.textContent = `✅ Sync completed! Updated sections based on ${changedSection} changes.`;
+            uploadStatus.className = 'text-sm text-green-600';
+            setTimeout(() => {
+                uploadStatus.textContent = '';
+                uploadStatus.className = 'text-sm text-slate-600';
+            }, 3000);
+        }
+
+    } catch (error) {
+        console.error('Error applying sync changes:', error);
+        showSyncError('Failed to apply changes: ' + error.message);
+    }
+}
+
+// Make functions globally accessible
+window.handleSyncRequest = handleSyncRequest;
+window.showSyncPreviewModal = showSyncPreviewModal;
+window.closeSyncPreviewModal = closeSyncPreviewModal;
+window.applySyncChanges = applySyncChanges;
