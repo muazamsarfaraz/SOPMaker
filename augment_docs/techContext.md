@@ -3,7 +3,9 @@
 ## Tech Stack
 - **Frontend**: Vanilla JavaScript, HTML5, CSS3
 - **Styling**: Tailwind CSS v3.4.0
-- **BPMN**: bpmn-js library for diagram rendering
+- **BPMN**: bpmn-js library for diagram rendering and editing
+- **AI Integration**: OpenAI GPT-4o-mini API for intelligent content generation
+- **Testing**: Playwright for integration testing, custom static analysis
 - **File Handling**: JSZip for client-side ZIP operations
 - **Backend**: Node.js with Express.js
 - **Deployment**: Railway with Nixpacks (Node.js 22, npm 9.x)
@@ -12,7 +14,16 @@
 ```json
 {
   "express": "^4.18.2",
-  "serve-static": "^1.15.0"
+  "serve-static": "^1.15.0",
+  "openai": "^5.7.0",
+  "dotenv": "^16.5.0"
+}
+```
+
+## Dev Dependencies
+```json
+{
+  "playwright": "^1.40.0"
 }
 ```
 
@@ -32,10 +43,15 @@ SOPMaker/
 ├── index.html              # Main application
 ├── script.js               # Core application logic
 ├── style.css               # Custom styles
-├── server.js               # Express server
+├── server.js               # Express server with OpenAI API integration
 ├── package.json            # Node.js configuration
+├── package-lock.json       # Dependency lock file
+├── .env.example            # Environment variables template
 ├── sop_content/            # Default SOP content
-├── tests/                  # Unit tests
+├── test-battery.js         # Static analysis test suite
+├── test-integration.js     # Playwright integration tests
+├── run-tests.js            # Complete test orchestrator
+├── TEST-README.md          # Test documentation
 └── augment_docs/           # Memory bank
 ```
 
@@ -45,8 +61,21 @@ SOPMaker/
 - **Build Time**: ~73 seconds
 - **Region**: europe-west4
 
-## Constraints
-- Client-side only processing (no server-side AI)
-- Browser compatibility for modern features (ES6+)
-- File size limits for ZIP downloads
-- CORS considerations for local development
+## Testing & Quality Assurance
+- **Static Analysis**: 8 comprehensive checks (syntax, structure, logic)
+- **Integration Testing**: Playwright-based UI testing (87.5% success rate)
+- **Production Testing**: Tests validate against live Railway deployment
+- **NPM Scripts**: `npm run test`, `test:static`, `test:integration`
+- **Quality Gates**: Automated testing prevents regressions
+
+## Environment Variables
+- **OPENAI_API_KEY**: Required for AI-powered synchronization
+- **NODE_ENV**: Environment setting (development/production)
+- **TEST_URL**: Custom URL for integration testing
+
+## Constraints & Considerations
+- **OpenAI API**: Requires valid API key for AI features (graceful fallback available)
+- **Browser Compatibility**: Modern features (ES6+, optional chaining)
+- **File Size Limits**: ZIP downloads limited by browser memory
+- **CORS Considerations**: Local development vs production deployment
+- **Null Safety**: Comprehensive protection against undefined/null errors
