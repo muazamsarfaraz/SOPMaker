@@ -104,3 +104,16 @@ logs
 # Temporary files
 tmp/
 temp/
+
+# Test artifacts
+test-results/
+playwright-report/
+test-results.xml
+*.png
+*.jpg
+*.jpeg
+
+# Backup files
+*.bak
+*.backup
+*.old
