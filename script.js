@@ -2552,10 +2552,12 @@ function displaySyncPreview(changedSection, syncResult) {
                                 `Will update ${syncResult[section].length} existing RACM entries with improved Key Risk, Key Control, Frequency, Evidence, and Risk Level`;
                         })() :
                         section === 'bpmnSuggestions' ?
-                        `BPMN Suggestions: ${syncResult[section].substring(0, 200)}...` :
+                        `BPMN Suggestions: ${typeof syncResult[section] === 'string' ? syncResult[section].substring(0, 200) : JSON.stringify(syncResult[section]).substring(0, 200)}...` :
                         section === 'descriptionEnhancement' ?
-                        `Enhancement: ${syncResult[section].substring(0, 200)}...` :
-                        syncResult[section].substring(0, 200) + '...'
+                        `Enhancement: ${typeof syncResult[section] === 'string' ? syncResult[section].substring(0, 200) : JSON.stringify(syncResult[section]).substring(0, 200)}...` :
+                        typeof syncResult[section] === 'string' ?
+                        syncResult[section].substring(0, 200) + '...' :
+                        JSON.stringify(syncResult[section]).substring(0, 200) + '...'
                     }
                 </div>
             </div>
