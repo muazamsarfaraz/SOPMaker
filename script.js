@@ -2604,13 +2604,22 @@ async function applySyncChanges() {
         }
 
         if (syncResult.descriptionEnhancement) {
-            // Enhancement mode - append to existing description
+            // Enhancement mode - replace with improved description (not append)
             const currentDescription = currentSopData.descriptionMd || '';
-            const enhancedDescription = currentDescription + '\n\n' + syncResult.descriptionEnhancement;
-            currentSopData.descriptionMd = enhancedDescription;
-            const descriptionContainer = document.getElementById('descriptionContainer');
-            if (descriptionContainer) {
-                descriptionContainer.innerHTML = parseMarkdownToHtml(enhancedDescription);
+
+            // Check if enhancement is actually an improvement or just repetitive content
+            const enhancement = syncResult.descriptionEnhancement.trim();
+
+            // Only apply if enhancement is meaningful and not already present
+            if (enhancement && !currentDescription.toLowerCase().includes(enhancement.toLowerCase().substring(0, 50))) {
+                // Replace with enhanced version instead of appending
+                currentSopData.descriptionMd = enhancement;
+                const descriptionContainer = document.getElementById('descriptionContainer');
+                if (descriptionContainer) {
+                    descriptionContainer.innerHTML = parseMarkdownToHtml(enhancement);
+                }
+            } else {
+                console.log('Skipping repetitive or empty enhancement');
             }
         }
 

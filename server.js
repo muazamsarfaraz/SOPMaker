@@ -52,6 +52,25 @@ app.post('/api/sync-sections', async (req, res) => {
   }
 });
 
+// Helper function to extract meaningful information from BPMN XML
+function extractBpmnProcessInfo(bpmnXml) {
+  if (!bpmnXml) return { steps: [], flow: 'No BPMN provided' };
+
+  try {
+    // Extract task names and start events from BPMN XML
+    const taskMatches = bpmnXml.match(/name="([^"]+)"/g) || [];
+    const steps = taskMatches.map(match => match.replace(/name="([^"]+)"/, '$1')).filter(step => step.length > 0);
+
+    // Create a simple flow description
+    const flow = steps.length > 0 ? `Process flow: ${steps.join(' → ')}` : 'No clear process flow identified';
+
+    return { steps, flow };
+  } catch (error) {
+    console.error('Error parsing BPMN:', error);
+    return { steps: [], flow: 'Error parsing BPMN diagram' };
+  }
+}
+
 async function generateSyncSuggestions(changedSection, currentData) {
   const { bpmnXml, description, racmData } = currentData;
 
@@ -60,81 +79,96 @@ async function generateSyncSuggestions(changedSection, currentData) {
     throw new Error('OpenAI API not configured. Using simulation mode.');
   }
 
+  // Extract meaningful process information from BPMN
+  const bpmnInfo = extractBpmnProcessInfo(bpmnXml);
+  console.log('Extracted BPMN info:', bpmnInfo);
+
   // Create context-aware prompts based on which section changed
   const prompts = {
-    bpmn: `You are an expert business process analyst. A BPMN diagram has been modified. Based on the current process flow, suggest enhancements to the Description and updates to the RACM (Risk and Control Matrix).
+    bpmn: `You are an expert business process analyst. A BPMN diagram has been modified. Analyze the ACTUAL process and provide relevant suggestions.
 
-Current BPMN: ${bpmnXml ? bpmnXml.substring(0, 1000) + '...' : 'Not provided'}
-Current Description: ${description || 'Not provided'}
-Current RACM entries: ${JSON.stringify(racmData || [], null, 2)}
+CURRENT PROCESS DESCRIPTION:
+"${description || 'Not provided'}"
 
-Please provide:
-1. Enhanced description that builds upon the existing content and incorporates insights from the BPMN changes
-2. Updates to existing RACM entries with improved Key Risk, Key Control, Frequency, Evidence, and Risk Level
+BPMN PROCESS ANALYSIS:
+${bpmnInfo.flow}
+Process Steps Identified: ${bpmnInfo.steps.length > 0 ? bpmnInfo.steps.join(', ') : 'None clearly identified'}
+
+EXISTING RACM: ${racmData && racmData.length > 0 ? racmData.length + ' entries' : 'None'}
+
+CRITICAL INSTRUCTION: Look at the actual process steps from the BPMN diagram. Create suggestions that match these SPECIFIC steps, not generic templates.
+
+TASK: Based on the ACTUAL BPMN process steps, provide:
+1. A clear description of what this process does (based on the step names)
+2. RACM entries for each major process step identified in the BPMN
 
 Respond in JSON format:
 {
-  "descriptionEnhancement": "Additional content to enhance the existing description...",
+  "descriptionEnhancement": "Clear description of what this specific process accomplishes based on the BPMN steps",
   "racmUpdates": [
     {
-      "stepNumber": "existing step number to update",
-      "keyRisk": "Updated key risk description",
-      "keyControl": "Updated key control description",
-      "frequency": "Updated frequency",
-      "evidence": "Updated evidence/audit test",
-      "riskLevel": "Updated risk level (Low/Medium/High)"
+      "stepNumber": "1",
+      "processStep": "Use the exact step name from BPMN",
+      "keyRisk": "Specific risk for this exact step",
+      "keyControl": "Specific control for this exact step",
+      "frequency": "Realistic frequency for this type of step",
+      "evidence": "Practical evidence for this specific step",
+      "riskLevel": "Low/Medium/High"
     }
   ]
 }`,
 
-    description: `You are an expert business process analyst. A process description has been updated.
+    description: `You are an expert business process analyst. Analyze the current process and provide intelligent improvements.
 
-Current Description: ${description || 'Not provided'}
-Current BPMN: ${bpmnXml ? 'BPMN diagram exists' : 'No BPMN provided'}
-Current RACM entries: ${JSON.stringify(racmData || [], null, 2)}
+CURRENT PROCESS DESCRIPTION:
+"${description || 'Not provided'}"
 
-CRITICAL ANALYSIS: Look at the current description. If it describes a completely different process than what's in the current RACM entries, you MUST provide completely new RACM entries that match the new process.
+BPMN PROCESS ANALYSIS:
+${bpmnInfo.flow}
+Process Steps from BPMN: ${bpmnInfo.steps.length > 0 ? bpmnInfo.steps.join(', ') : 'None identified'}
 
-For example:
-- If current RACM shows "payment processing" but description is about "tea making", provide tea-making RACM entries
-- If current RACM shows "accounts system" but description is about "manufacturing", provide manufacturing RACM entries
+CURRENT RACM ENTRIES: ${racmData && racmData.length > 0 ? racmData.length + ' entries exist' : 'None'}
 
-Please provide:
-1. Enhanced description content that builds upon the existing description with additional insights and improvements
-2. Comprehensive BPMN diagram suggestions that reflect the current process described
-3. RACM entries that match the process described in the current description (not the old RACM entries)
+CRITICAL INSTRUCTION: Use the ACTUAL process steps from the BPMN diagram to create relevant suggestions. Don't use generic templates.
+
+TASK: Based on the ACTUAL process (description + BPMN steps), provide:
+1. An IMPROVED description that clearly explains what this specific process does
+2. RACM entries that match the actual process steps identified
 
 Respond in JSON format:
 {
-  "descriptionEnhancement": "Additional content to enhance the existing description with new insights and improvements...",
-  "bpmnSuggestions": "Comprehensive description of what the BPMN diagram should show for this process, including all major steps, decision points, and flow...",
+  "descriptionEnhancement": "Clear, improved description of what this specific process accomplishes",
+  "bpmnSuggestions": "Brief description of the key process flow",
   "racmUpdates": [
     {
-      "stepNumber": "step number (1, 2, 3, etc.)",
-      "processStep": "Name of the actual process step from the current description",
-      "keyRisk": "Key risk for this specific process step",
-      "keyControl": "Key control for this specific process step",
-      "frequency": "Control frequency",
-      "evidence": "Evidence/audit test",
-      "riskLevel": "Risk level (Low/Medium/High)"
+      "stepNumber": "1",
+      "processStep": "Use actual step name from BPMN or description",
+      "keyRisk": "Specific risk for this exact process step",
+      "keyControl": "Specific control for this exact process step",
+      "frequency": "Realistic frequency for this step type",
+      "evidence": "Specific evidence for this process step",
+      "riskLevel": "Low/Medium/High"
     }
   ]
 }`,
 
-    racm: `You are an expert risk management analyst. The RACM (Risk and Control Matrix) has been updated. Based on the new risk and control information, suggest enhancements to the Description and BPMN diagram.
+    racm: `You are an expert risk management analyst. The RACM has been updated. Provide intelligent suggestions for other sections.
 
-Current RACM entries: ${JSON.stringify(racmData || [], null, 2)}
-Current Description: ${description || 'Not provided'}
-Current BPMN: ${bpmnXml ? 'BPMN diagram exists' : 'No BPMN provided'}
+CURRENT PROCESS DESCRIPTION:
+"${description || 'Not provided'}"
 
-Please provide:
-1. Enhanced description that builds upon existing content and incorporates the new risk considerations
-2. Suggestions for BPMN diagram updates to include control checkpoints
+UPDATED RACM: ${racmData && racmData.length > 0 ? `${racmData.length} risk/control entries` : 'None'}
+
+TASK: Based on the RACM updates, provide:
+1. An improved description that incorporates risk awareness
+2. BPMN suggestions for control points
+
+Keep suggestions specific to the actual process described.
 
 Respond in JSON format:
 {
-  "descriptionEnhancement": "Additional content to enhance the existing description with risk considerations...",
-  "bpmnSuggestions": "Describe what control checkpoints should be added to the BPMN..."
+  "descriptionEnhancement": "Improved description with risk considerations integrated naturally",
+  "bpmnSuggestions": "Specific control checkpoints for this process"
 }`
   };
 
