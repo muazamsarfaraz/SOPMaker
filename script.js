@@ -2133,24 +2133,25 @@ function renderRacmTable() {
     if (!tableBody) return;
 
     if (racmData.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="13" class="border border-slate-300 px-3 py-4 text-center text-slate-500">No RACM entries found. Click "Add Row" to create the first entry.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="11" class="border border-slate-300 px-3 py-4 text-center text-slate-500">No RACM entries found. Click "Add Row" to create the first entry.</td></tr>';
         return;
     }
 
     tableBody.innerHTML = racmData.map((entry, index) => `
         <tr class="hover:bg-slate-50">
-            <td class="border border-slate-300 px-3 py-2 text-center font-medium">${entry.stepNumber}</td>
-            <td class="border border-slate-300 px-3 py-2">${entry.processStep}</td>
-            <td class="border border-slate-300 px-3 py-2">${entry.keyRisk}</td>
-            <td class="border border-slate-300 px-3 py-2">${entry.keyControl}</td>
-            <td class="border border-slate-300 px-3 py-2">${entry.controlOwner}</td>
-            <td class="border border-slate-300 px-3 py-2">${entry.frequency}</td>
+            <td class="border border-slate-300 px-3 py-2 text-center font-medium">${entry.stepNumber || ''}</td>
+            <td class="border border-slate-300 px-3 py-2">${entry.processStep || ''}</td>
+            <td class="border border-slate-300 px-3 py-2">${entry.riskDescription || entry.keyRisk || ''}</td>
+            <td class="border border-slate-300 px-3 py-2">${entry.controlDescription || entry.keyControl || ''}</td>
+            <td class="border border-slate-300 px-3 py-2">${entry.controlOwner || ''}</td>
+            <td class="border border-slate-300 px-3 py-2">${entry.controlFrequency || entry.frequency || ''}</td>
             <td class="border border-slate-300 px-3 py-2">
-                <span class="px-2 py-1 rounded text-xs font-medium ${getControlTypeBadgeClass(entry.controlType)}">${entry.controlType}</span>
+                <span class="px-2 py-1 rounded text-xs font-medium ${getControlTypeBadgeClass(entry.controlType)}">${entry.controlType || ''}</span>
             </td>
-            <td class="border border-slate-300 px-3 py-2">${entry.evidence}</td>
+            <td class="border border-slate-300 px-3 py-2">${entry.evidenceAuditTest || entry.evidence || ''}</td>
+            <td class="border border-slate-300 px-3 py-2">${entry.cosoComponent || ''}</td>
             <td class="border border-slate-300 px-3 py-2">
-                <span class="px-2 py-1 rounded text-xs font-medium ${getRiskBadgeClass(entry.riskLevel)}">${entry.riskLevel}</span>
+                <span class="px-2 py-1 rounded text-xs font-medium ${getRiskBadgeClass(entry.riskLevel)}">${entry.riskLevel || ''}</span>
             </td>
             <td class="border border-slate-300 px-3 py-2">
                 <div class="flex space-x-1">
@@ -2359,6 +2360,37 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeSyncModal);
 } else {
     initializeSyncModal();
+}
+
+// Validation function to ensure all RACM fields are properly populated
+function validateAndFixRacmEntry(entry) {
+    const fallbacks = {
+        stepNumber: entry.stepNumber || '1',
+        processStep: entry.processStep || 'Process Step',
+        riskDescription: entry.riskDescription || 'Risk not specified - requires review',
+        controlDescription: entry.controlDescription || 'Control not specified - requires review',
+        controlOwner: entry.controlOwner || 'Process Owner',
+        controlFrequency: entry.controlFrequency || 'As needed',
+        controlType: entry.controlType || 'Preventive',
+        evidenceAuditTest: entry.evidenceAuditTest || 'Evidence not specified - requires review',
+        cosoComponent: entry.cosoComponent || 'Control Activities',
+        riskLevel: entry.riskLevel || 'Medium'
+    };
+
+    // Check for undefined/null/empty values and replace with fallbacks
+    const validatedEntry = {};
+    Object.keys(fallbacks).forEach(key => {
+        const value = entry[key];
+        if (value === undefined || value === null || value === '' || value === 'undefined') {
+            validatedEntry[key] = fallbacks[key];
+            console.warn(`RACM field '${key}' was undefined/empty, using fallback: ${fallbacks[key]}`);
+        } else {
+            validatedEntry[key] = value;
+        }
+    });
+
+    console.log('Validated RACM entry:', validatedEntry);
+    return validatedEntry;
 }
 
 async function handleSyncRequest(changedSection) {
@@ -2661,7 +2693,7 @@ async function applySyncChanges() {
             if (isCompletelyDifferentProcess) {
                 // Force complete replacement for different processes
                 console.log('Forcing complete RACM replacement for different process');
-                racmData = syncResult.racmUpdates.map(update => ({
+                racmData = syncResult.racmUpdates.map(update => validateAndFixRacmEntry({
                     stepNumber: update.stepNumber,
                     processStep: update.processStep || `Process Step ${update.stepNumber}`,
                     riskDescription: update.keyRisk,
@@ -2682,17 +2714,21 @@ async function applySyncChanges() {
                     );
 
                     if (existingEntryIndex !== -1) {
-                        // Update existing entry
+                        // Update existing entry with validation
                         const existingEntry = racmData[existingEntryIndex];
-                        if (update.processStep) existingEntry.processStep = update.processStep;
-                        if (update.keyRisk) existingEntry.riskDescription = update.keyRisk;
-                        if (update.keyControl) existingEntry.controlDescription = update.keyControl;
-                        if (update.frequency) existingEntry.controlFrequency = update.frequency;
-                        if (update.evidence) existingEntry.evidenceAuditTest = update.evidence;
-                        if (update.riskLevel) existingEntry.riskLevel = update.riskLevel;
+                        const updatedEntry = {
+                            ...existingEntry,
+                            processStep: update.processStep || existingEntry.processStep,
+                            riskDescription: update.keyRisk || existingEntry.riskDescription,
+                            controlDescription: update.keyControl || existingEntry.controlDescription,
+                            controlFrequency: update.frequency || existingEntry.controlFrequency,
+                            evidenceAuditTest: update.evidence || existingEntry.evidenceAuditTest,
+                            riskLevel: update.riskLevel || existingEntry.riskLevel
+                        };
+                        racmData[existingEntryIndex] = validateAndFixRacmEntry(updatedEntry);
                     } else {
                         // Add new entry if stepNumber doesn't exist
-                        racmData.push({
+                        racmData.push(validateAndFixRacmEntry({
                             stepNumber: update.stepNumber,
                             processStep: update.processStep || `Process Step ${update.stepNumber}`,
                             riskDescription: update.keyRisk,
@@ -2703,7 +2739,7 @@ async function applySyncChanges() {
                             evidenceAuditTest: update.evidence,
                             cosoComponent: 'Control Activities',
                             riskLevel: update.riskLevel
-                        });
+                        }));
                     }
                 });
             }

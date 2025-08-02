@@ -109,11 +109,11 @@ Respond in JSON format:
     {
       "stepNumber": "1",
       "processStep": "Use the exact step name from BPMN",
-      "keyRisk": "Specific risk for this exact step",
-      "keyControl": "Specific control for this exact step",
-      "frequency": "Realistic frequency for this type of step",
-      "evidence": "Practical evidence for this specific step",
-      "riskLevel": "Low/Medium/High"
+      "keyRisk": "Specific risk for this exact step (REQUIRED - cannot be empty)",
+      "keyControl": "Specific control for this exact step (REQUIRED - cannot be empty)",
+      "frequency": "Realistic frequency like Daily/Weekly/Per transaction (REQUIRED)",
+      "evidence": "Practical evidence for this specific step (REQUIRED - cannot be empty)",
+      "riskLevel": "Low/Medium/High (REQUIRED)"
     }
   ]
 }`,
@@ -143,11 +143,11 @@ Respond in JSON format:
     {
       "stepNumber": "1",
       "processStep": "Use actual step name from BPMN or description",
-      "keyRisk": "Specific risk for this exact process step",
-      "keyControl": "Specific control for this exact process step",
-      "frequency": "Realistic frequency for this step type",
-      "evidence": "Specific evidence for this process step",
-      "riskLevel": "Low/Medium/High"
+      "keyRisk": "Specific risk for this exact process step (REQUIRED - must be detailed)",
+      "keyControl": "Specific control for this exact process step (REQUIRED - must be actionable)",
+      "frequency": "Realistic frequency like Daily/Weekly/Per transaction (REQUIRED)",
+      "evidence": "Specific evidence for this process step (REQUIRED - must be measurable)",
+      "riskLevel": "Low/Medium/High (REQUIRED)"
     }
   ]
 }`,
