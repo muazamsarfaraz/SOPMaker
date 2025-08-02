@@ -39,22 +39,49 @@ async function testRacmValidation() {
             // Check RACM table for complete entries
             const racmTable = await page.$('#racmTable');
             if (racmTable) {
-                // Get all table cells to check for missing information
-                const cells = await page.$$('#racmTable td');
+                // Get all table rows (excluding header)
+                const rows = await page.$$('#racmTableBody tr');
                 let emptyFields = 0;
                 let totalFields = 0;
-                
-                for (const cell of cells) {
-                    const text = await cell.textContent();
-                    totalFields++;
-                    if (!text || text.trim() === '' || text.includes('undefined') || text.includes('not specified')) {
-                        emptyFields++;
-                        console.log('❌ Empty/undefined field found:', text);
+
+                console.log(`Found ${rows.length} RACM rows to analyze`);
+
+                for (let i = 0; i < rows.length; i++) {
+                    const cells = await rows[i].$$('td');
+                    console.log(`\n🔍 Analyzing Row ${i + 1}:`);
+
+                    const fieldNames = ['Step#', 'Process Step', 'Key Risk', 'Key Control', 'Control Owner', 'Frequency', 'Control Type', 'Evidence', 'COSO Component', 'Risk Level', 'Actions'];
+
+                    for (let j = 0; j < cells.length && j < fieldNames.length; j++) {
+                        const fieldName = fieldNames[j];
+
+                        // Skip Actions column - it contains HTML buttons, not text
+                        if (fieldName === 'Actions') {
+                            // Check if buttons exist instead of text content
+                            const buttons = await cells[j].$$('button');
+                            if (buttons.length > 0) {
+                                console.log(`✅ ${fieldName}: ${buttons.length} action buttons present`);
+                            } else {
+                                console.log(`⚠️ ${fieldName}: No action buttons found`);
+                            }
+                            continue;
+                        }
+
+                        const text = await cells[j].textContent();
+                        const cleanText = text.trim();
+                        totalFields++;
+
+                        if (!cleanText || cleanText === '' || cleanText.includes('undefined') || cleanText.includes('not specified')) {
+                            emptyFields++;
+                            console.log(`❌ Empty field: ${fieldName} = "${cleanText}"`);
+                        } else {
+                            console.log(`✅ ${fieldName}: "${cleanText.substring(0, 50)}${cleanText.length > 50 ? '...' : ''}"`);
+                        }
                     }
                 }
-                
-                console.log(`📊 RACM Field Analysis: ${totalFields - emptyFields}/${totalFields} fields populated`);
-                
+
+                console.log(`\n📊 RACM Field Analysis: ${totalFields - emptyFields}/${totalFields} fields populated`);
+
                 if (emptyFields === 0) {
                     console.log('✅ All RACM fields are properly populated!');
                     return true;
