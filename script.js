@@ -63,12 +63,12 @@ document.addEventListener('DOMContentLoaded', function() {
         risksMd: null,
         controlsMd: null,
         footerData: {
-            docId: "AP-SOP-2025-042",
-            version: "2.3",
-            effectiveDate: "May 15, 2025",
-            reviewDate: "May 15, 2026",
-            approvedBy: "J. Thompson, CFO",
-            department: "Finance & Accounting"
+            docId: "SOP-DRAFT-001",
+            version: "1.0",
+            effectiveDate: "Pending Approval",
+            reviewDate: "Pending Approval",
+            approvedBy: "Pending Review",
+            department: "Operations"
         }
     };
     let currentSopData = window.currentSopData; // Local reference for backward compatibility
@@ -566,6 +566,62 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Helper functions for footer generation
+    function generateDocumentId(userInput) {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+
+        // Create a short code based on the process type
+        let processCode = 'GEN';
+        const input = userInput.toLowerCase();
+
+        if (input.includes('payment') || input.includes('invoice') || input.includes('billing')) {
+            processCode = 'FIN';
+        } else if (input.includes('customer') || input.includes('service') || input.includes('support')) {
+            processCode = 'CS';
+        } else if (input.includes('employee') || input.includes('hr') || input.includes('onboard')) {
+            processCode = 'HR';
+        } else if (input.includes('inventory') || input.includes('warehouse') || input.includes('stock')) {
+            processCode = 'INV';
+        } else if (input.includes('quality') || input.includes('audit') || input.includes('compliance')) {
+            processCode = 'QA';
+        } else if (input.includes('security') || input.includes('access') || input.includes('login')) {
+            processCode = 'SEC';
+        } else if (input.includes('food') || input.includes('kitchen') || input.includes('cook') || input.includes('tea') || input.includes('coffee')) {
+            processCode = 'F&B';
+        }
+
+        return `${processCode}-SOP-${year}${month}${day}-AI`;
+    }
+
+    function determineDepartment(userInput) {
+        const input = userInput.toLowerCase();
+
+        if (input.includes('payment') || input.includes('invoice') || input.includes('billing') || input.includes('finance')) {
+            return 'Finance & Accounting';
+        } else if (input.includes('customer') || input.includes('service') || input.includes('support')) {
+            return 'Customer Service';
+        } else if (input.includes('employee') || input.includes('hr') || input.includes('onboard') || input.includes('hiring')) {
+            return 'Human Resources';
+        } else if (input.includes('inventory') || input.includes('warehouse') || input.includes('stock') || input.includes('supply')) {
+            return 'Supply Chain & Logistics';
+        } else if (input.includes('quality') || input.includes('audit') || input.includes('compliance')) {
+            return 'Quality Assurance';
+        } else if (input.includes('security') || input.includes('access') || input.includes('login') || input.includes('password')) {
+            return 'Information Security';
+        } else if (input.includes('food') || input.includes('kitchen') || input.includes('cook') || input.includes('tea') || input.includes('coffee') || input.includes('restaurant')) {
+            return 'Food & Beverage';
+        } else if (input.includes('marketing') || input.includes('sales') || input.includes('promotion')) {
+            return 'Marketing & Sales';
+        } else if (input.includes('it') || input.includes('software') || input.includes('system') || input.includes('technical')) {
+            return 'Information Technology';
+        } else {
+            return 'Operations';
+        }
+    }
+
     // Real AI-powered SOP generation
     async function generateRealSopData(userInput, statusElement, spinnerElement) {
         const updateStatus = (text) => {
@@ -607,12 +663,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 processSteps: sopData.processSteps || [],
                 racmData: sopData.racmData || [],
                 footerData: {
-                    documentId: 'AI-SOP-' + Date.now(),
-                    version: '1.0',
-                    effectiveDate: new Date().toLocaleDateString(),
-                    reviewDate: new Date(Date.now() + 365*24*60*60*1000).toLocaleDateString(),
-                    approvedBy: 'AI Generated',
-                    department: 'Operations'
+                    docId: generateDocumentId(userInput),
+                    version: '1.0 (AI Draft)',
+                    effectiveDate: 'Pending Approval',
+                    reviewDate: 'Pending Approval',
+                    approvedBy: 'Pending Review',
+                    department: determineDepartment(userInput)
                 }
             };
 
@@ -1496,12 +1552,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         updateStatus('Finalizing footer information...');
         const footerData = {
-            docId: "AI-GEN-" + new Date().toISOString().slice(0,10),
+            docId: generateDocumentId(userInput),
             version: "1.0 (AI Draft)",
-            effectiveDate: new Date().toLocaleDateString(),
-            reviewDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toLocaleDateString(),
+            effectiveDate: "Pending Approval",
+            reviewDate: "Pending Approval",
             approvedBy: "Pending Review",
-            department: "AI Assisted"
+            department: determineDepartment(userInput)
         };
         await new Promise(resolve => setTimeout(resolve, 200));
 
