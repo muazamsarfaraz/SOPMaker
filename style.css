@@ -336,3 +336,40 @@ body {
         /* border-color: #000 !important; */
     }
 }
+
+/* RACM Inline Editing Styles */
+.editable-cell {
+    position: relative;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.editable-cell:hover {
+    background-color: #f0f9ff !important;
+    border-color: #0ea5e9 !important;
+}
+
+.editable-cell:hover::after {
+    content: "✏️";
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.editable-cell input,
+.editable-cell textarea,
+.editable-cell select {
+    background-color: #ffffff;
+    border: 2px solid #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.editable-cell input:focus,
+.editable-cell textarea:focus,
+.editable-cell select:focus {
+    outline: none;
+    border-color: #1d4ed8;
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
+}

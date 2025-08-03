@@ -2409,28 +2409,23 @@ function renderRacmTable() {
     }
 
     tableBody.innerHTML = racmData.map((entry, index) => `
-        <tr class="hover:bg-slate-50">
-            <td class="border border-slate-300 px-3 py-2 text-center font-medium">${entry.stepNumber || ''}</td>
-            <td class="border border-slate-300 px-3 py-2">${entry.processStep || ''}</td>
-            <td class="border border-slate-300 px-3 py-2">${entry.riskDescription || entry.keyRisk || ''}</td>
-            <td class="border border-slate-300 px-3 py-2">${entry.controlDescription || entry.keyControl || ''}</td>
-            <td class="border border-slate-300 px-3 py-2">${entry.controlOwner || ''}</td>
-            <td class="border border-slate-300 px-3 py-2">${entry.controlFrequency || entry.frequency || ''}</td>
-            <td class="border border-slate-300 px-3 py-2">
+        <tr class="hover:bg-slate-50" data-row-index="${index}">
+            <td class="border border-slate-300 px-3 py-2 text-center font-medium editable-cell" data-field="stepNumber" data-row="${index}">${entry.stepNumber || ''}</td>
+            <td class="border border-slate-300 px-3 py-2 editable-cell" data-field="processStep" data-row="${index}">${entry.processStep || ''}</td>
+            <td class="border border-slate-300 px-3 py-2 editable-cell" data-field="riskDescription" data-row="${index}">${entry.riskDescription || entry.keyRisk || ''}</td>
+            <td class="border border-slate-300 px-3 py-2 editable-cell" data-field="controlDescription" data-row="${index}">${entry.controlDescription || entry.keyControl || ''}</td>
+            <td class="border border-slate-300 px-3 py-2 editable-cell" data-field="controlOwner" data-row="${index}">${entry.controlOwner || ''}</td>
+            <td class="border border-slate-300 px-3 py-2 editable-cell" data-field="controlFrequency" data-row="${index}">${entry.controlFrequency || entry.frequency || ''}</td>
+            <td class="border border-slate-300 px-3 py-2 editable-cell" data-field="controlType" data-row="${index}" data-type="select">
                 <span class="px-2 py-1 rounded text-xs font-medium ${getControlTypeBadgeClass(entry.controlType)}">${entry.controlType || ''}</span>
             </td>
-            <td class="border border-slate-300 px-3 py-2">${entry.evidenceAuditTest || entry.evidence || ''}</td>
-            <td class="border border-slate-300 px-3 py-2">${entry.cosoComponent || ''}</td>
-            <td class="border border-slate-300 px-3 py-2">
+            <td class="border border-slate-300 px-3 py-2 editable-cell" data-field="evidenceAuditTest" data-row="${index}">${entry.evidenceAuditTest || entry.evidence || ''}</td>
+            <td class="border border-slate-300 px-3 py-2 editable-cell" data-field="cosoComponent" data-row="${index}" data-type="select">${entry.cosoComponent || ''}</td>
+            <td class="border border-slate-300 px-3 py-2 editable-cell" data-field="riskLevel" data-row="${index}" data-type="select">
                 <span class="px-2 py-1 rounded text-xs font-medium ${getRiskBadgeClass(entry.riskLevel)}">${entry.riskLevel || ''}</span>
             </td>
             <td class="border border-slate-300 px-3 py-2">
                 <div class="flex space-x-1">
-                    <button onclick="editRacmEntry(${index})" class="text-blue-600 hover:text-blue-800 text-xs" title="Edit">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                    </button>
                     <button onclick="deleteRacmEntry(${index})" class="text-red-600 hover:text-red-800 text-xs" title="Delete">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -2440,6 +2435,208 @@ function renderRacmTable() {
             </td>
         </tr>
     `).join('');
+
+    // Add click listeners for inline editing
+    addInlineEditListeners();
+}
+
+// Inline editing functionality
+function addInlineEditListeners() {
+    const editableCells = document.querySelectorAll('.editable-cell');
+    editableCells.forEach(cell => {
+        cell.addEventListener('click', handleCellClick);
+        cell.style.cursor = 'pointer';
+        cell.title = 'Click to edit';
+    });
+}
+
+function handleCellClick(event) {
+    const cell = event.currentTarget;
+    const field = cell.dataset.field;
+    const rowIndex = parseInt(cell.dataset.row);
+    const inputType = cell.dataset.type || 'text';
+
+    // Don't edit if already editing
+    if (cell.querySelector('input, select, textarea')) {
+        return;
+    }
+
+    const currentValue = getCurrentCellValue(field, rowIndex);
+
+    if (inputType === 'select') {
+        createSelectEditor(cell, field, rowIndex, currentValue);
+    } else {
+        createTextEditor(cell, field, rowIndex, currentValue);
+    }
+}
+
+function getCurrentCellValue(field, rowIndex) {
+    const entry = racmData[rowIndex];
+    if (!entry) return '';
+
+    // Handle field name variations
+    switch (field) {
+        case 'riskDescription':
+            return entry.riskDescription || entry.keyRisk || '';
+        case 'controlDescription':
+            return entry.controlDescription || entry.keyControl || '';
+        case 'controlFrequency':
+            return entry.controlFrequency || entry.frequency || '';
+        case 'evidenceAuditTest':
+            return entry.evidenceAuditTest || entry.evidence || '';
+        case 'controlType':
+            return entry.controlType || '';
+        case 'riskLevel':
+            return entry.riskLevel || '';
+        case 'cosoComponent':
+            return entry.cosoComponent || '';
+        default:
+            return entry[field] || '';
+    }
+}
+
+function createTextEditor(cell, field, rowIndex, currentValue) {
+    const originalContent = cell.innerHTML;
+
+    // Determine if this should be a textarea (for longer content)
+    const isLongText = ['riskDescription', 'controlDescription', 'evidenceAuditTest'].includes(field);
+    const inputElement = isLongText ? document.createElement('textarea') : document.createElement('input');
+
+    if (isLongText) {
+        inputElement.rows = 2;
+        inputElement.style.resize = 'vertical';
+    } else {
+        inputElement.type = 'text';
+    }
+
+    inputElement.value = currentValue;
+    inputElement.className = 'w-full px-2 py-1 border border-blue-300 rounded text-sm focus:ring-blue-500 focus:border-blue-500';
+    inputElement.style.minHeight = '32px';
+
+    // Replace cell content with input
+    cell.innerHTML = '';
+    cell.appendChild(inputElement);
+    inputElement.focus();
+    inputElement.select();
+
+    // Save on blur or Enter key
+    const saveEdit = () => {
+        const newValue = inputElement.value.trim();
+        updateRacmField(rowIndex, field, newValue);
+        // Re-render to show updated content
+        setTimeout(() => {
+            renderRacmTable();
+        }, 50);
+    };
+
+    // Cancel on Escape key
+    const cancelEdit = () => {
+        cell.innerHTML = originalContent;
+        addInlineEditListeners(); // Re-add listeners
+    };
+
+    inputElement.addEventListener('blur', saveEdit);
+    inputElement.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            saveEdit();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelEdit();
+        }
+    });
+}
+
+function createSelectEditor(cell, field, rowIndex, currentValue) {
+    const originalContent = cell.innerHTML;
+
+    const selectElement = document.createElement('select');
+    selectElement.className = 'w-full px-2 py-1 border border-blue-300 rounded text-sm focus:ring-blue-500 focus:border-blue-500';
+
+    let options = [];
+
+    // Define options based on field type
+    switch (field) {
+        case 'controlType':
+            options = ['Preventive', 'Detective', 'Corrective', 'Automated', 'Monitoring'];
+            break;
+        case 'riskLevel':
+            options = ['Low', 'Medium', 'High', 'Critical'];
+            break;
+        case 'cosoComponent':
+            options = ['Control Environment', 'Risk Assessment', 'Control Activities', 'Information & Communication', 'Monitoring Activities'];
+            break;
+        default:
+            options = [currentValue];
+    }
+
+    // Add empty option
+    const emptyOption = document.createElement('option');
+    emptyOption.value = '';
+    emptyOption.textContent = '-- Select --';
+    selectElement.appendChild(emptyOption);
+
+    // Add all options
+    options.forEach(optionValue => {
+        const option = document.createElement('option');
+        option.value = optionValue;
+        option.textContent = optionValue;
+        option.selected = optionValue === currentValue;
+        selectElement.appendChild(option);
+    });
+
+    // Replace cell content with select
+    cell.innerHTML = '';
+    cell.appendChild(selectElement);
+    selectElement.focus();
+
+    // Save on change or blur
+    const saveEdit = () => {
+        const newValue = selectElement.value;
+        updateRacmField(rowIndex, field, newValue);
+        // Re-render to show updated content with proper styling
+        setTimeout(() => {
+            renderRacmTable();
+        }, 50);
+    };
+
+    // Cancel on Escape key
+    const cancelEdit = () => {
+        cell.innerHTML = originalContent;
+        addInlineEditListeners(); // Re-add listeners
+    };
+
+    selectElement.addEventListener('change', saveEdit);
+    selectElement.addEventListener('blur', saveEdit);
+    selectElement.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelEdit();
+        }
+    });
+}
+
+function updateRacmField(rowIndex, field, newValue) {
+    if (!racmData[rowIndex]) return;
+
+    // Update the field in the data
+    racmData[rowIndex][field] = newValue;
+
+    // Handle field name variations for backward compatibility
+    if (field === 'riskDescription') {
+        racmData[rowIndex].keyRisk = newValue;
+    } else if (field === 'controlDescription') {
+        racmData[rowIndex].keyControl = newValue;
+    } else if (field === 'controlFrequency') {
+        racmData[rowIndex].frequency = newValue;
+    } else if (field === 'evidenceAuditTest') {
+        racmData[rowIndex].evidence = newValue;
+    }
+
+    // Update the global SOP data
+    if (window.currentSopData) {
+        window.currentSopData.racmData = racmData;
+    }
 }
 
 function getRiskBadgeClass(level) {
@@ -2460,35 +2657,61 @@ function getControlTypeBadgeClass(type) {
     }
 }
 
-function toggleRacmEditMode() {
-    const racmEditor = document.getElementById('racmEditor');
-    const editBtn = document.getElementById('editRacmBtn');
+let inlineEditingEnabled = true; // Inline editing is always enabled now
 
-    if (racmEditor && editBtn) {
-        const isHidden = racmEditor.classList.contains('hidden');
-        if (isHidden) {
-            racmEditor.classList.remove('hidden');
-            editBtn.textContent = 'Cancel Edit';
-        } else {
-            racmEditor.classList.add('hidden');
-            editBtn.innerHTML = `
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                </svg>
-                Edit Matrix
-            `;
-            clearRacmForm();
-        }
+function toggleRacmEditMode() {
+    // Show a helpful message about inline editing
+    const editBtn = document.getElementById('editRacmBtn');
+    if (editBtn) {
+        // Create a temporary tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'absolute bg-blue-600 text-white px-3 py-2 rounded text-sm z-10 whitespace-nowrap';
+        tooltip.style.top = '-40px';
+        tooltip.style.left = '0';
+        tooltip.textContent = 'Click any cell in the table to edit it directly!';
+
+        editBtn.style.position = 'relative';
+        editBtn.appendChild(tooltip);
+
+        // Remove tooltip after 3 seconds
+        setTimeout(() => {
+            if (tooltip.parentNode) {
+                tooltip.parentNode.removeChild(tooltip);
+            }
+        }, 3000);
     }
 }
 
 function addNewRacmRow() {
-    editingRacmIndex = -1;
-    clearRacmForm();
-    const racmEditor = document.getElementById('racmEditor');
-    if (racmEditor) {
-        racmEditor.classList.remove('hidden');
-    }
+    // Add a new empty row to the data
+    const newEntry = {
+        stepNumber: (racmData.length + 1).toString(),
+        processStep: 'New Process Step',
+        riskDescription: 'Click to add risk description',
+        controlDescription: 'Click to add control description',
+        controlOwner: 'Process Owner',
+        controlFrequency: 'As needed',
+        controlType: 'Preventive',
+        evidenceAuditTest: 'Click to add evidence/audit test',
+        cosoComponent: 'Control Activities',
+        riskLevel: 'Medium'
+    };
+
+    racmData.push(newEntry);
+    renderRacmTable();
+
+    // Scroll to the new row and highlight it briefly
+    setTimeout(() => {
+        const newRowIndex = racmData.length - 1;
+        const newRow = document.querySelector(`tr[data-row-index="${newRowIndex}"]`);
+        if (newRow) {
+            newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            newRow.style.backgroundColor = '#dbeafe'; // Light blue highlight
+            setTimeout(() => {
+                newRow.style.backgroundColor = '';
+            }, 2000);
+        }
+    }, 100);
 }
 
 function editRacmEntry(index) {
