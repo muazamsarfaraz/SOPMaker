@@ -23,6 +23,34 @@ if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_ap
   console.log('⚠️  OpenAI API key not configured. Sync will use simulation mode.');
 }
 
+// SOP Generation endpoint
+app.post('/api/generate-sop', async (req, res) => {
+  try {
+    const { userInput } = req.body;
+
+    if (!userInput || !userInput.trim()) {
+      return res.status(400).json({ error: 'Missing required field: userInput' });
+    }
+
+    console.log(`Processing SOP generation request: ${userInput}`);
+
+    // Generate complete SOP using OpenAI
+    const sopData = await generateCompleteSOP(userInput.trim());
+
+    res.json({
+      success: true,
+      sopData
+    });
+
+  } catch (error) {
+    console.error('Error in SOP generation endpoint:', error);
+    res.status(500).json({
+      error: 'Failed to generate SOP',
+      details: error.message
+    });
+  }
+});
+
 // Sync endpoint for AI-powered section synchronization
 app.post('/api/sync-sections', async (req, res) => {
   try {
@@ -51,6 +79,87 @@ app.post('/api/sync-sections', async (req, res) => {
     });
   }
 });
+
+// Generate complete SOP using OpenAI
+async function generateCompleteSOP(userInput) {
+  // If OpenAI is not configured, return an error to trigger fallback
+  if (!openai) {
+    throw new Error('OpenAI API not configured. Using fallback mode.');
+  }
+
+  const prompt = `You are an expert SOP (Standard Operating Procedure) writer. Create a complete, professional SOP based on the user's request.
+
+USER REQUEST: "${userInput}"
+
+Create a comprehensive SOP that includes:
+1. A clear, descriptive title
+2. A detailed process description with purpose, scope, and stakeholders
+3. Step-by-step procedure
+4. Risk assessment with specific risks and mitigation strategies
+5. Control measures and KPIs
+6. A simple BPMN process flow (as text description of steps)
+
+Make the SOP specific to the actual process requested. If it's "Make a cup of tea", create a tea-making SOP. If it's "Employee onboarding", create an onboarding SOP.
+
+Respond in JSON format:
+{
+  "title": "Descriptive SOP Title",
+  "subtitle": "Brief subtitle or department",
+  "description": "Detailed markdown description with purpose, scope, stakeholders",
+  "processSteps": ["Step 1: Action", "Step 2: Action", "Step 3: Action"],
+  "risks": ["Risk 1: Description", "Risk 2: Description"],
+  "controls": ["Control 1: Description", "Control 2: Description"],
+  "racmData": [
+    {
+      "stepNumber": "1",
+      "processStep": "Specific step name",
+      "riskDescription": "Specific risk for this step",
+      "controlDescription": "Specific control for this step",
+      "controlOwner": "Role responsible",
+      "controlFrequency": "How often",
+      "controlType": "Preventive/Detective/Corrective",
+      "evidenceAuditTest": "How to verify",
+      "cosoComponent": "Control Activities",
+      "riskLevel": "Low/Medium/High"
+    }
+  ]
+}`;
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "system",
+        content: "You are an expert SOP writer who creates detailed, practical Standard Operating Procedures. Always respond with valid JSON."
+      },
+      {
+        role: "user",
+        content: prompt
+      }
+    ],
+    temperature: 0.7,
+    max_tokens: 3000
+  });
+
+  const responseText = completion.choices[0].message.content.trim();
+  console.log('OpenAI SOP generation response:', responseText);
+
+  try {
+    // Remove markdown code blocks if present
+    let jsonText = responseText;
+    if (jsonText.startsWith('```json')) {
+      jsonText = jsonText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+
+    return JSON.parse(jsonText);
+  } catch (parseError) {
+    console.error('Failed to parse OpenAI response as JSON:', parseError);
+    console.error('Raw response:', responseText);
+    throw new Error('Invalid response format from AI service');
+  }
+}
 
 // Helper function to extract meaningful information from BPMN XML
 function extractBpmnProcessInfo(bpmnXml) {

@@ -516,19 +516,24 @@ document.addEventListener('DOMContentLoaded', function() {
         cancelSopGenerationBtn.disabled = true;
 
         try {
-            const generatedData = await generatePlaceholderSopData(userInput, sopGeneratorStatus, sopGeneratorSpinner);
+            // Use real AI generation instead of hardcoded templates
+            const generatedData = await generateRealSopData(userInput, sopGeneratorStatus, sopGeneratorSpinner);
             currentSopData = { ...generatedData }; // Update global state
 
             if (sopGeneratorStatus) sopGeneratorStatus.textContent = 'Updating page content...';
             await new Promise(resolve => setTimeout(resolve, 200));
             updatePageTitle(currentSopData.title, currentSopData.subtitle || "Generated SOP Content");
             updateFooter(currentSopData.footerData);
-            openDiagram(currentSopData.bpmnXml);
+
+            // Generate simple BPMN from process steps
+            const bpmnXml = generateSimpleBpmnFromSteps(generatedData.processSteps || []);
+            currentSopData.bpmnXml = bpmnXml;
+            openDiagram(bpmnXml);
+
             const descriptionContainer = document.getElementById('descriptionContainer');
             if (descriptionContainer) {
                 descriptionContainer.innerHTML = parseMarkdownToHtml(currentSopData.descriptionMd);
             }
-
 
             // Update RACM data
             if (currentSopData.racmData && Array.isArray(currentSopData.racmData)) {
@@ -550,7 +555,108 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Process type detection and business logic
+    // Real AI-powered SOP generation
+    async function generateRealSopData(userInput, statusElement, spinnerElement) {
+        const updateStatus = (text) => {
+            if (statusElement) statusElement.textContent = text;
+        };
+
+        updateStatus('Connecting to AI service...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        try {
+            updateStatus('AI is analyzing your request...');
+
+            const response = await fetch('/api/generate-sop', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userInput })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            updateStatus('AI is creating your SOP...');
+            const result = await response.json();
+
+            updateStatus('Processing AI response...');
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // Transform AI response to our format
+            const sopData = result.sopData;
+
+            return {
+                title: sopData.title || 'Generated SOP',
+                subtitle: sopData.subtitle || 'AI Generated Content',
+                descriptionMd: sopData.description || 'No description provided',
+                processSteps: sopData.processSteps || [],
+                racmData: sopData.racmData || [],
+                footerData: {
+                    documentId: 'AI-SOP-' + Date.now(),
+                    version: '1.0',
+                    effectiveDate: new Date().toLocaleDateString(),
+                    reviewDate: new Date(Date.now() + 365*24*60*60*1000).toLocaleDateString(),
+                    approvedBy: 'AI Generated',
+                    department: 'Operations'
+                }
+            };
+
+        } catch (error) {
+            console.error('AI SOP generation failed:', error);
+            updateStatus('AI service unavailable, using fallback...');
+
+            // Fallback to original template system
+            return await generatePlaceholderSopData(userInput, statusElement, spinnerElement);
+        }
+    }
+
+    // Generate simple BPMN from process steps
+    function generateSimpleBpmnFromSteps(steps) {
+        if (!steps || steps.length === 0) {
+            return generateBusinessProcessBPMN('generic', 'Generic process');
+        }
+
+        let bpmnXml = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_1" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Start">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>`;
+
+        // Add tasks for each step
+        steps.forEach((step, index) => {
+            const taskId = `Task_${index + 1}`;
+            const flowId = `Flow_${index + 2}`;
+            const stepName = step.replace(/^\d+\.\s*/, '').substring(0, 50); // Remove numbering and limit length
+
+            bpmnXml += `
+    <bpmn:task id="${taskId}" name="${stepName}">
+      <bpmn:incoming>Flow_${index + 1}</bpmn:incoming>
+      <bpmn:outgoing>${flowId}</bpmn:outgoing>
+    </bpmn:task>`;
+        });
+
+        // Add end event
+        bpmnXml += `
+    <bpmn:endEvent id="EndEvent_1" name="End">
+      <bpmn:incoming>Flow_${steps.length + 1}</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+      <!-- Diagram elements would go here for visual layout -->
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
+
+        return bpmnXml;
+    }
+
+    // Process type detection and business logic (fallback)
     function detectProcessType(userInput) {
         const input = userInput.toLowerCase();
 
