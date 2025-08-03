@@ -109,11 +109,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function openDiagram(xml) {
+        console.log('🔄 openDiagram called with XML length:', xml ? xml.length : 'null');
+        console.log('🔄 isEditMode:', isEditMode);
+        console.log('🔄 bpmnViewer initialized:', !!bpmnViewer);
+
         currentSopData.bpmnXml = xml; // Store current BPMN XML
 
         // Only use this function for viewer mode now
         // Edit mode handles its own diagram loading
         if (isEditMode) {
+            console.log('🔄 Skipping openDiagram - in edit mode');
             return;
         }
 
@@ -526,9 +531,22 @@ document.addEventListener('DOMContentLoaded', function() {
             updateFooter(currentSopData.footerData);
 
             // Generate simple BPMN from process steps
+            console.log('🔄 Generating BPMN from process steps:', generatedData.processSteps?.length || 0);
             const bpmnXml = generateSimpleBpmnFromSteps(generatedData.processSteps || []);
-            currentSopData.bpmnXml = bpmnXml;
-            openDiagram(bpmnXml);
+            console.log('🔄 Generated BPMN XML length:', bpmnXml ? bpmnXml.length : 'null');
+
+            if (bpmnXml) {
+                currentSopData.bpmnXml = bpmnXml;
+                console.log('🔄 Calling openDiagram with generated BPMN...');
+                openDiagram(bpmnXml);
+            } else {
+                // Fallback to generic BPMN if generation fails
+                console.log('🔄 BPMN generation failed, using fallback...');
+                const fallbackBpmn = generateBusinessProcessBPMN('generic', 'Generated process');
+                currentSopData.bpmnXml = fallbackBpmn;
+                console.log('🔄 Calling openDiagram with fallback BPMN...');
+                openDiagram(fallbackBpmn);
+            }
 
             const descriptionContainer = document.getElementById('descriptionContainer');
             if (descriptionContainer) {
@@ -617,7 +635,26 @@ document.addEventListener('DOMContentLoaded', function() {
     // Generate simple BPMN from process steps
     function generateSimpleBpmnFromSteps(steps) {
         if (!steps || steps.length === 0) {
-            return generateBusinessProcessBPMN('generic', 'Generic process');
+            // Return a simple start->end process
+            return `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_1" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Start Process">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_1" name="Execute Process">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_1" name="End Process">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
         }
 
         let bpmnXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -648,7 +685,24 @@ document.addEventListener('DOMContentLoaded', function() {
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
-      <!-- Diagram elements would go here for visual layout -->
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>`;
+
+        // Add shapes for each task
+        steps.forEach((step, index) => {
+            const taskId = `Task_${index + 1}`;
+            const x = 300 + (index * 150);
+            bpmnXml += `
+      <bpmndi:BPMNShape id="${taskId}_di" bpmnElement="${taskId}">
+        <dc:Bounds x="${x}" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>`;
+        });
+
+        bpmnXml += `
+      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="${300 + (steps.length * 150)}" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>`;
