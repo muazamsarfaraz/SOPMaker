@@ -109,16 +109,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function openDiagram(xml) {
-        console.log('🔄 openDiagram called with XML length:', xml ? xml.length : 'null');
-        console.log('🔄 isEditMode:', isEditMode);
-        console.log('🔄 bpmnViewer initialized:', !!bpmnViewer);
-
         currentSopData.bpmnXml = xml; // Store current BPMN XML
 
         // Only use this function for viewer mode now
         // Edit mode handles its own diagram loading
         if (isEditMode) {
-            console.log('🔄 Skipping openDiagram - in edit mode');
             return;
         }
 
@@ -143,6 +138,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (loadingMessageElement && diagramContainer) loadingMessageElement.style.display = 'none';
             console.log('BPMN XML imported successfully.');
             if (uploadStatus) uploadStatus.textContent = 'Diagram loaded successfully.';
+
+            // Add a small delay to ensure DOM updates
+            await new Promise(resolve => setTimeout(resolve, 100));
 
             const canvas = bpmnViewer.get('canvas');
             canvas.zoom('fit-viewport', 'auto');
@@ -531,20 +529,15 @@ document.addEventListener('DOMContentLoaded', function() {
             updateFooter(currentSopData.footerData);
 
             // Generate simple BPMN from process steps
-            console.log('🔄 Generating BPMN from process steps:', generatedData.processSteps?.length || 0);
             const bpmnXml = generateSimpleBpmnFromSteps(generatedData.processSteps || []);
-            console.log('🔄 Generated BPMN XML length:', bpmnXml ? bpmnXml.length : 'null');
 
             if (bpmnXml) {
                 currentSopData.bpmnXml = bpmnXml;
-                console.log('🔄 Calling openDiagram with generated BPMN...');
                 openDiagram(bpmnXml);
             } else {
                 // Fallback to generic BPMN if generation fails
-                console.log('🔄 BPMN generation failed, using fallback...');
                 const fallbackBpmn = generateBusinessProcessBPMN('generic', 'Generated process');
                 currentSopData.bpmnXml = fallbackBpmn;
-                console.log('🔄 Calling openDiagram with fallback BPMN...');
                 openDiagram(fallbackBpmn);
             }
 
@@ -649,9 +642,28 @@ document.addEventListener('DOMContentLoaded', function() {
     <bpmn:endEvent id="EndEvent_1" name="End Process">
       <bpmn:incoming>Flow_2</bpmn:incoming>
     </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="EndEvent_1" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1">
+        <dc:Bounds x="300" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="450" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="300" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="400" y="117" />
+        <di:waypoint x="450" y="117" />
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>`;
@@ -681,7 +693,29 @@ document.addEventListener('DOMContentLoaded', function() {
         bpmnXml += `
     <bpmn:endEvent id="EndEvent_1" name="End">
       <bpmn:incoming>Flow_${steps.length + 1}</bpmn:incoming>
-    </bpmn:endEvent>
+    </bpmn:endEvent>`;
+
+        // Add sequence flows (this was missing!)
+        bpmnXml += `
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1" />`;
+
+        steps.forEach((step, index) => {
+            const currentTaskId = `Task_${index + 1}`;
+            const nextFlowId = `Flow_${index + 2}`;
+
+            if (index < steps.length - 1) {
+                // Flow from current task to next task
+                const nextTaskId = `Task_${index + 2}`;
+                bpmnXml += `
+    <bpmn:sequenceFlow id="${nextFlowId}" sourceRef="${currentTaskId}" targetRef="${nextTaskId}" />`;
+            } else {
+                // Flow from last task to end event
+                bpmnXml += `
+    <bpmn:sequenceFlow id="${nextFlowId}" sourceRef="${currentTaskId}" targetRef="EndEvent_1" />`;
+            }
+        });
+
+        bpmnXml += `
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
@@ -702,7 +736,28 @@ document.addEventListener('DOMContentLoaded', function() {
         bpmnXml += `
       <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
         <dc:Bounds x="${300 + (steps.length * 150)}" y="99" width="36" height="36" />
-      </bpmndi:BPMNShape>
+      </bpmndi:BPMNShape>`;
+
+        // Add sequence flow edges (visual connections)
+        bpmnXml += `
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="300" y="117" />
+      </bpmndi:BPMNEdge>`;
+
+        steps.forEach((step, index) => {
+            const flowId = `Flow_${index + 2}`;
+            const currentX = 300 + (index * 150);
+            const nextX = index < steps.length - 1 ? 300 + ((index + 1) * 150) : 300 + (steps.length * 150);
+
+            bpmnXml += `
+      <bpmndi:BPMNEdge id="${flowId}_di" bpmnElement="${flowId}">
+        <di:waypoint x="${currentX + 100}" y="117" />
+        <di:waypoint x="${nextX}" y="117" />
+      </bpmndi:BPMNEdge>`;
+        });
+
+        bpmnXml += `
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>`;

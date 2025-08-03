@@ -109,12 +109,20 @@ if (bpmnXml) {
     const taskCount = (bpmnXml.match(/bpmn:task/g) || []).length;
     console.log('✅ Task count:', taskCount, '(expected:', teaSteps.length, ')');
 
-    if (taskCount !== teaSteps.length) {
-        console.log('\n🔍 Debugging task duplication...');
-        const taskMatches = bpmnXml.match(/bpmn:task[^>]*>/g) || [];
-        taskMatches.forEach((match, index) => {
-            console.log(`Task ${index + 1}:`, match);
-        });
+    // Check for sequence flows
+    const sequenceFlows = (bpmnXml.match(/bpmn:sequenceFlow/g) || []).length;
+    console.log('✅ Sequence flows count:', sequenceFlows, '(expected:', teaSteps.length + 1, ')');
+
+    // Check for diagram shapes
+    const shapes = (bpmnXml.match(/bpmndi:BPMNShape/g) || []).length;
+    console.log('✅ Diagram shapes count:', shapes);
+
+    // Check for diagram edges
+    const edges = (bpmnXml.match(/bpmndi:BPMNEdge/g) || []).length;
+    console.log('✅ Diagram edges count:', edges);
+
+    if (sequenceFlows === 0) {
+        console.log('❌ NO SEQUENCE FLOWS FOUND - This is the problem!');
     }
 
 } else {
