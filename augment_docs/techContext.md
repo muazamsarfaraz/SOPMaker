@@ -4,7 +4,7 @@
 - **Frontend**: Vanilla JavaScript, HTML5, CSS3
 - **Styling**: Tailwind CSS v3.4.0
 - **BPMN**: bpmn-js library for diagram rendering and editing
-- **AI Integration**: OpenAI GPT-4o-mini API for intelligent content generation
+- **AI Integration**: OpenRouter API (primary) + OpenAI GPT-4o-mini (fallback) for intelligent content generation
 - **Testing**: Playwright for integration testing, custom static analysis
 - **File Handling**: JSZip for client-side ZIP operations
 - **Backend**: Node.js with Express.js
@@ -69,13 +69,21 @@ SOPMaker/
 - **Quality Gates**: Automated testing prevents regressions
 
 ## Environment Variables
-- **OPENAI_API_KEY**: Required for AI-powered synchronization
+- **OPENROUTER_API_KEY**: Primary AI API for reliable synchronization
+- **OPENAI_API_KEY**: Fallback AI API for synchronization features
 - **NODE_ENV**: Environment setting (development/production)
 - **TEST_URL**: Custom URL for integration testing
 
 ## Constraints & Considerations
-- **OpenAI API**: Requires valid API key for AI features (graceful fallback available)
+- **AI API**: OpenRouter (primary) or OpenAI (fallback) required for AI features (graceful simulation available)
+- **Credit Management**: Timeout detection and fallback for API billing issues
 - **Browser Compatibility**: Modern features (ES6+, optional chaining)
 - **File Size Limits**: ZIP downloads limited by browser memory
 - **CORS Considerations**: Local development vs production deployment
 - **Null Safety**: Comprehensive protection against undefined/null errors
+
+## Recent Enhancements
+- **RACM Inline Editing**: Click-to-edit functionality with smart input types
+- **Footer Intelligence**: Contextual document IDs and professional metadata
+- **BPMN XML Structure**: Fixed sequence flows for proper diagram rendering
+- **API Error Handling**: Enhanced timeout and credit issue detection
