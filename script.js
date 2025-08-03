@@ -2541,22 +2541,47 @@ function closeSyncPreviewModal() {
 function displaySyncPreview(changedSection, syncResult) {
     if (!syncPreviewContent) return;
 
+    // Create context-specific messaging
+    const sectionMessages = {
+        bpmn: {
+            title: "🔄 AI Analysis: Process Overview (BPMN Diagram)",
+            subtitle: "Based on your BPMN diagram, here are suggested improvements for other sections:"
+        },
+        description: {
+            title: "🔄 AI Analysis: Process Description",
+            subtitle: "Based on your description, here are suggested improvements for other sections:"
+        },
+        racm: {
+            title: "🔄 AI Analysis: Risk & Control Matrix",
+            subtitle: "Based on your RACM matrix, here are suggested improvements for other sections:"
+        }
+    };
+
+    const currentMessage = sectionMessages[changedSection] || sectionMessages.description;
+
     let previewHtml = `
         <div class="mb-4">
             <h4 class="text-lg font-semibold text-slate-700 mb-2">
-                🔄 Sync suggestions based on ${changedSection.toUpperCase()} changes:
+                ${currentMessage.title}
             </h4>
+            <p class="text-sm text-slate-600 mb-4">
+                ${currentMessage.subtitle}
+            </p>
         </div>
     `;
 
-    // Show what will be updated
+    // Show what will be updated with user-friendly names
     Object.keys(syncResult).forEach(section => {
-        const sectionName = section === 'bpmnXml' ? 'BPMN Diagram' :
-                           section === 'bpmnSuggestions' ? 'BPMN Diagram' :
-                           section === 'description' ? 'Description (Complete Replacement)' :
-                           section === 'descriptionEnhancement' ? 'Description (Enhancement)' :
-                           section === 'racmData' ? 'RACM Matrix (New Entries)' :
-                           section === 'racmUpdates' ? 'RACM Matrix (Updates)' : section;
+        const sectionNames = {
+            bpmnXml: '📊 Process Overview (BPMN Diagram)',
+            bpmnSuggestions: '📊 Process Overview (BPMN Suggestions)',
+            description: '📝 Process Description (Complete Replacement)',
+            descriptionEnhancement: '📝 Process Description (AI Enhancement)',
+            racmData: '🛡️ Risk & Control Matrix (New Entries)',
+            racmUpdates: '🛡️ Risk & Control Matrix (AI Updates)'
+        };
+
+        const sectionName = sectionNames[section] || `📄 ${section.charAt(0).toUpperCase() + section.slice(1)}`;
 
         previewHtml += `
             <div class="mb-6 p-4 border border-slate-200 rounded-md">
