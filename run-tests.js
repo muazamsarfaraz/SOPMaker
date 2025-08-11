@@ -16,6 +16,7 @@ class TestRunner {
         this.testResults = {
             static: false,
             integration: false,
+            comprehensive: false,
             server: false
         };
     }
@@ -45,7 +46,7 @@ class TestRunner {
 
             this.serverProcess.stdout.on('data', (data) => {
                 const output = data.toString();
-                if (output.includes('Server running on port 3000') || output.includes('listening on port 3000')) {
+                if (output.includes('SOP Maker server running on port 3000')) {
                     this.log('Test server started successfully');
                     this.testResults.server = true;
                     resolve();
@@ -62,13 +63,13 @@ class TestRunner {
                 reject(error);
             });
 
-            // Timeout after 10 seconds
+            // Timeout after 20 seconds
             setTimeout(() => {
                 if (!this.testResults.server) {
                     this.log('Server startup timeout', 'error');
                     reject(new Error('Server startup timeout'));
                 }
-            }, 10000);
+            }, 20000);
         });
     }
 
@@ -124,6 +125,21 @@ class TestRunner {
         }
     }
 
+    async runComprehensiveTests() {
+        this.log('🔬 Running comprehensive tests...');
+
+        try {
+            const ComprehensiveTestSuite = require('./test-comprehensive');
+            const testSuite = new ComprehensiveTestSuite();
+            const result = await testSuite.runAllTests();
+            this.testResults.comprehensive = result;
+            return result;
+        } catch (error) {
+            this.log(`Comprehensive tests failed: ${error.message}`, 'error');
+            return false;
+        }
+    }
+
     async runAllTests() {
         this.log('🚀 Starting SOPMaker Complete Test Suite...');
         this.log('This will run static analysis, start server, and run integration tests');
@@ -147,6 +163,12 @@ class TestRunner {
                 allPassed = false;
             }
 
+            // Step 4: Run comprehensive tests
+            const comprehensiveResult = await this.runComprehensiveTests();
+            if (!comprehensiveResult) {
+                allPassed = false;
+            }
+
         } catch (error) {
             this.log(`Test suite failed: ${error.message}`, 'error');
             allPassed = false;
@@ -160,8 +182,9 @@ class TestRunner {
         this.log(`Static Analysis: ${this.testResults.static ? '✅ PASSED' : '❌ FAILED'}`);
         this.log(`Server Startup: ${this.testResults.server ? '✅ PASSED' : '❌ FAILED'}`);
         this.log(`Integration Tests: ${this.testResults.integration ? '✅ PASSED' : '❌ FAILED'}`);
+        this.log(`Comprehensive Tests: ${this.testResults.comprehensive ? '✅ PASSED' : '❌ FAILED'}`);
 
-        if (allPassed && this.testResults.static && this.testResults.server && this.testResults.integration) {
+        if (allPassed && this.testResults.static && this.testResults.server && this.testResults.integration && this.testResults.comprehensive) {
             this.log('\n🎉 ALL TESTS PASSED - SAFE TO PUSH TO PRODUCTION! 🎉', 'success');
             return true;
         } else {
