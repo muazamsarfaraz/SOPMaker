@@ -2520,7 +2520,11 @@ function createTextEditor(cell, field, rowIndex, currentValue) {
     inputElement.select();
 
     // Save on blur or Enter key
+    let saved = false;
     const saveEdit = () => {
+        if (saved) return; // Prevent double-saving
+        saved = true;
+
         const newValue = inputElement.value.trim();
         updateRacmField(rowIndex, field, newValue);
         // Re-render to show updated content
@@ -2591,7 +2595,11 @@ function createSelectEditor(cell, field, rowIndex, currentValue) {
     selectElement.focus();
 
     // Save on change or blur
+    let saved = false;
     const saveEdit = () => {
+        if (saved) return; // Prevent double-saving
+        saved = true;
+
         const newValue = selectElement.value;
         updateRacmField(rowIndex, field, newValue);
         // Re-render to show updated content with proper styling
