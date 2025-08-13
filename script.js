@@ -73,6 +73,9 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     let currentSopData = window.currentSopData; // Local reference for backward compatibility
 
+    // Flag to track if SOP has been generated (prevents initial content from overwriting)
+    let sopGenerated = false;
+
     if (!diagramContainer) {
         console.error('Diagram container #diagram not found.');
         if(loadingMessageElement) loadingMessageElement.textContent = 'Error: Diagram container not found.';
@@ -388,7 +391,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(`HTTP error! status: ${response.status} loading ${filePath}`);
             }
             const bpmnXML = await response.text();
-            openDiagram(bpmnXML);
+            // Only load initial diagram if no SOP has been generated
+            if (!sopGenerated) {
+                openDiagram(bpmnXML);
+            }
         } catch (error) {
             console.error(`Error fetching diagram ${filePath}:`, error);
             if (loadingMessageElement && diagramContainer) {
@@ -412,7 +418,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(`HTTP error! status: ${response.status} for file ${filePath}`);
             }
             const markdownText = await response.text();
-            currentSopData.descriptionMd = markdownText; // Store it
+            // Only update currentSopData if no SOP has been generated
+            if (!sopGenerated) {
+                currentSopData.descriptionMd = markdownText; // Store it
+            }
             container.innerHTML = `<pre style="white-space: pre-wrap; word-wrap: break-word; font-family: inherit;">${markdownText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`;
         } catch (error) {
             console.error(`Error fetching Markdown file ${filePath}:`, error);
@@ -455,7 +464,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(`HTTP error! status: ${response.status} for file ${filePath}`);
             }
             const markdownText = await response.text();
-            currentSopData.stepsMd = markdownText; // Store it
+            // Only update currentSopData if no SOP has been generated
+            if (!sopGenerated) {
+                currentSopData.stepsMd = markdownText; // Store it
+            }
             const htmlContent = parseProcedureStepsMarkdownToHtml(markdownText);
             container.innerHTML = htmlContent;
         } catch (error) {
@@ -521,7 +533,9 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             // Use real AI generation instead of hardcoded templates
             const generatedData = await generateRealSopData(userInput, sopGeneratorStatus, sopGeneratorSpinner);
-            currentSopData = { ...generatedData }; // Update global state
+            currentSopData = { ...generatedData }; // Update local reference
+            window.currentSopData = { ...generatedData }; // Update window reference
+            sopGenerated = true; // Mark that SOP has been generated
 
             if (sopGeneratorStatus) sopGeneratorStatus.textContent = 'Updating page content...';
             await new Promise(resolve => setTimeout(resolve, 200));
@@ -533,11 +547,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (bpmnXml) {
                 currentSopData.bpmnXml = bpmnXml;
+                window.currentSopData.bpmnXml = bpmnXml;
                 openDiagram(bpmnXml);
             } else {
                 // Fallback to generic BPMN if generation fails
                 const fallbackBpmn = generateBusinessProcessBPMN('generic', 'Generated process');
                 currentSopData.bpmnXml = fallbackBpmn;
+                window.currentSopData.bpmnXml = fallbackBpmn;
                 openDiagram(fallbackBpmn);
             }
 
@@ -2908,6 +2924,8 @@ async function handleSyncRequest(changedSection) {
             description: currentSopData.descriptionMd,
             racmData: racmData || []
         };
+
+
 
         // Call OpenAI API for real sync suggestions
         const syncResult = await callOpenAISyncAPI(changedSection, currentData);
