@@ -101,6 +101,8 @@ Create a comprehensive SOP that includes:
 
 Make the SOP specific to the actual process requested. If it's "Make a cup of tea", create a tea-making SOP. If it's "Employee onboarding", create an onboarding SOP.
 
+IMPORTANT: Create RACM entries for EACH major process step. Ensure every significant step has corresponding risk and control information. Aim for comprehensive coverage - if you create 8 process steps, create RACM entries for at least 5-8 of the most critical steps.
+
 Respond in JSON format:
 {
   "title": "Descriptive SOP Title",
@@ -113,6 +115,18 @@ Respond in JSON format:
     {
       "stepNumber": "1",
       "processStep": "Specific step name",
+      "riskDescription": "Specific risk for this step",
+      "controlDescription": "Specific control for this step",
+      "controlOwner": "Role responsible",
+      "controlFrequency": "How often",
+      "controlType": "Preventive/Detective/Corrective",
+      "evidenceAuditTest": "How to verify",
+      "cosoComponent": "Control Activities",
+      "riskLevel": "Low/Medium/High"
+    },
+    {
+      "stepNumber": "2",
+      "processStep": "Next step name",
       "riskDescription": "Specific risk for this step",
       "controlDescription": "Specific control for this step",
       "controlOwner": "Role responsible",

@@ -533,6 +533,12 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             // Use real AI generation instead of hardcoded templates
             const generatedData = await generateRealSopData(userInput, sopGeneratorStatus, sopGeneratorSpinner);
+
+            // Ensure RACM completeness - fill gaps if needed
+            if (generatedData.processSteps && generatedData.racmData) {
+                generatedData.racmData = ensureRacmCompleteness(generatedData.processSteps, generatedData.racmData);
+            }
+
             currentSopData = { ...generatedData }; // Update local reference
             window.currentSopData = { ...generatedData }; // Update window reference
             sopGenerated = true; // Mark that SOP has been generated
@@ -565,6 +571,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update RACM data
             if (currentSopData.racmData && Array.isArray(currentSopData.racmData)) {
                 racmData = [...currentSopData.racmData];
+                window.racmData = racmData; // Ensure window reference is updated
                 renderRacmTable();
             }
 
@@ -580,6 +587,45 @@ document.addEventListener('DOMContentLoaded', function() {
             generateSopBtn.disabled = false;
             cancelSopGenerationBtn.disabled = false;
         }
+    }
+
+    // Ensure RACM completeness by filling gaps for missing process steps
+    function ensureRacmCompleteness(processSteps, racmData) {
+        if (!processSteps || !Array.isArray(processSteps) || processSteps.length === 0) {
+            return racmData || [];
+        }
+
+        const existingStepNumbers = new Set(racmData.map(entry => entry.stepNumber));
+        const completedRacm = [...racmData];
+
+        // Check each process step and create RACM entry if missing
+        processSteps.forEach((step, index) => {
+            const stepNumber = (index + 1).toString();
+
+            if (!existingStepNumbers.has(stepNumber)) {
+                // Extract step name from "Step X: Description" format
+                const stepName = step.replace(/^Step\s*\d+:\s*/i, '').trim();
+
+                // Create a basic RACM entry for missing steps
+                const newEntry = {
+                    stepNumber: stepNumber,
+                    processStep: stepName,
+                    riskDescription: `Potential risks associated with ${stepName.toLowerCase()}.`,
+                    controlDescription: `Ensure proper execution of ${stepName.toLowerCase()}.`,
+                    controlOwner: 'Process Owner',
+                    controlFrequency: 'Each execution',
+                    controlType: 'Preventive',
+                    evidenceAuditTest: `Verify completion of ${stepName.toLowerCase()}.`,
+                    cosoComponent: 'Control Activities',
+                    riskLevel: 'Medium'
+                };
+
+                completedRacm.push(newEntry);
+            }
+        });
+
+        // Sort by step number to maintain order
+        return completedRacm.sort((a, b) => parseInt(a.stepNumber) - parseInt(b.stepNumber));
     }
 
     // Helper functions for footer generation
