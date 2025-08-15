@@ -282,6 +282,38 @@ body {
         border: 1px solid #ccc !important; /* Add a light border */
     }
 
+    /* BPMN SVG specific print styles */
+    .diagram-container svg {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 80mm !important;
+        max-width: 100% !important;
+        display: block !important;
+        visibility: visible !important;
+        background-color: white !important;
+    }
+
+    /* Ensure BPMN elements are visible */
+    .diagram-container svg * {
+        visibility: visible !important;
+    }
+
+    /* BPMN text elements */
+    .diagram-container svg text {
+        font-size: 8pt !important;
+        fill: #000 !important;
+    }
+
+    /* BPMN shapes and paths */
+    .diagram-container svg path,
+    .diagram-container svg rect,
+    .diagram-container svg circle,
+    .diagram-container svg ellipse {
+        stroke: #000 !important;
+        stroke-width: 1px !important;
+        fill: white !important;
+    }
+
     .bjs-container {
         /* Let bpmn-js handle scaling within its container if possible, or use transform: scale() */
     }

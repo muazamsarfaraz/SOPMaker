@@ -2354,9 +2354,80 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function handlePrintSop() {
+        // Prepare BPMN diagram for printing
+        prepareBpmnForPrint();
+
+        // Print the page
         window.print();
+
+        // Restore BPMN diagram after printing
+        setTimeout(() => {
+            restoreBpmnAfterPrint();
+        }, 1000);
+
         if (fabContainer && fabContainer.classList.contains('open')) {
             toggleFabMenu();
+        }
+    }
+
+    function prepareBpmnForPrint() {
+        const diagramContainer = document.getElementById('diagram');
+        const svg = diagramContainer ? diagramContainer.querySelector('svg') : null;
+
+        if (svg) {
+            // Store original dimensions
+            svg.dataset.originalWidth = svg.getAttribute('width') || svg.style.width;
+            svg.dataset.originalHeight = svg.getAttribute('height') || svg.style.height;
+            svg.dataset.originalViewBox = svg.getAttribute('viewBox');
+
+            // Set print-friendly dimensions
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '300px');
+            svg.style.width = '100%';
+            svg.style.height = '300px';
+            svg.style.maxWidth = '100%';
+            svg.style.maxHeight = '300px';
+
+            // Ensure the SVG is visible and properly scaled
+            svg.style.display = 'block';
+            svg.style.visibility = 'visible';
+
+            // If there's a viewBox, preserve aspect ratio
+            if (svg.dataset.originalViewBox) {
+                svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+            }
+
+            console.log('BPMN prepared for print:', {
+                width: svg.style.width,
+                height: svg.style.height,
+                viewBox: svg.getAttribute('viewBox')
+            });
+        }
+    }
+
+    function restoreBpmnAfterPrint() {
+        const diagramContainer = document.getElementById('diagram');
+        const svg = diagramContainer ? diagramContainer.querySelector('svg') : null;
+
+        if (svg && svg.dataset.originalWidth) {
+            // Restore original dimensions
+            svg.setAttribute('width', svg.dataset.originalWidth);
+            svg.setAttribute('height', svg.dataset.originalHeight);
+            svg.style.width = svg.dataset.originalWidth;
+            svg.style.height = svg.dataset.originalHeight;
+            svg.style.maxWidth = '';
+            svg.style.maxHeight = '';
+
+            if (svg.dataset.originalViewBox) {
+                svg.setAttribute('viewBox', svg.dataset.originalViewBox);
+            }
+
+            // Clean up stored data
+            delete svg.dataset.originalWidth;
+            delete svg.dataset.originalHeight;
+            delete svg.dataset.originalViewBox;
+
+            console.log('BPMN restored after print');
         }
     }
 
